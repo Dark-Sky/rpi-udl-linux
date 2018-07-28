@@ -1,0 +1,73 @@
+******************** NATIVE COMPILE FOR THE RPI KERNEL***********************
+
+THIS WILL UPGRADE THE KERNEL FOR USE WITH OUR ARCH LINUX IMAGE
+
+THIS KERNEL HAS NEW DVB HEADERS. FOLLOW PROCEDURE BELOW TO SANITIZE THE
+UAPI HEADERS FOR USER SPACE APPS AND INSTALL THEM AFTER COMPILING/INSTALLING
+THE NEW KERNEL
+
+*****************************************************************************
+
+# Current kernel for the RPi 2/3/3B+ is 4.18.0-rc4
+
+# UPDATE:
+
+# UDL HAS ADDED A NEW DEPEND FOR THE KERNEL BUILDING. I DO NOT THINK IT AFFECTS COMPILING ON THE PI
+# BUT INSTALL IT TO BE ON THE SAFE SIDE:
+
+sudo pacman -S pigz
+
+# Adjust gcc stddef.h header path:
+
+# For some reason lately the current gcc header stddef.h is not getting picked up in the system include
+# path so we need to make a link so it will be found:
+
+sudo ln -s /usr/lib/gcc/armv7l-unknown-linux-gnueabihf/"YOUR-CURRENT-GCC-VERSION"/include/stddef.h /usr/include/linux/stddef.h
+
+# CLONE REPO & COMPILE KERNEL
+# Note: If you upgraded to gcc8 there will be several warnings. They are safe to ignore.
+
+git clone https://bitbucket.org/dark-sky/rpi-udl-linux       # Clone repo
+cd rpi-udl-linux
+make -j4 bcm2709-udl_defconfig                    # Generate .config file
+make -j4 menuconfig                               # Save and exit
+make -j4                                          # Compile kernel
+
+# INSTALL KERNEL & RELATED FILES TO THE SYSTEM
+
+sudo cp /boot/kernel7.img /boot/kernel7.img-sav   # Back up existing kernel
+sudo cp arch/arm/boot/zImage /boot/kernel7.img    # Copy new kernel to /boot
+sudo make INSTALL_MOD_PATH=/usr modules_install   # Installs modules
+
+# INSTALL KERNEL BLOBS TO /BOOT
+
+sudo cp -v arch/arm/boot/dts/bcm2709-rpi-2-b.dtb /boot
+sudo cp -v arch/arm/boot/dts/bcm2710-rpi-3-b.dtb /boot/
+sudo cp -v arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dtb /boot/      # New pi3b+ firm
+sudo cp -v arch/arm/boot/dts/bcm2710-rpi-cm3.dtb /boot/
+sudo cp -v arch/arm/boot/dts/bcm2836-rpi-2-b.dtb /boot/
+sudo cp -v arch/arm/boot/dts/bcm2837-rpi-3-b.dtb /boot/
+sudo cp -v arch/arm/boot/dts/overlays/*.dtb* /boot/overlays/
+sudo cp -v arch/arm/boot/dts/overlays/README /boot/overlays/
+
+#  INSTALL NEW SANITIZED DVB HEADERS FOR USER SPACE APPS TO SDCARD'S ROOT PARTITION
+
+sudo cp -v sanitized-dvb-headers/* /usr/include/linux/dvb/
+
+# DO NOT SKIP THIS. It seems they have fixed this so reverse it or it will cause problems
+
+Edit the /boot/cmdline.txt and remove these 2 options if you have them in the file:
+
+dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
+
+sudo sync
+
+sudo reboot
+
+NOTE:
+
+I DO NOT HAVE A PI 3B+ AND SO IT'S ONBOARD WIFI IS UNTESTED HERE. I INCLUDED THE LATEST
+RASPIAN FIRMWARE IN  firmware/brcm/ IN THIS TREE IF NEEDED.
+
+cd firmware
+sudo make install

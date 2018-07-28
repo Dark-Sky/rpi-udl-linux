@@ -1,0 +1,43 @@
+# THIS KERNEL IS NOW COMPATABLE WITH THE PI 3B+
+
+# Current kernel for the RPi 2/3/3B+ is 4.18.0-rc4
+
+Majortom's & DarkSky's repository based off of V4L media_tree,
+powARman's saa716x work, and Updatelee's work. With out 
+Updatelees's hard work this would not be possible; Thanks UDL!
+
+This is a modified kernel source for use with the Raspberry
+Pi 2, 3 & 3B+ that is used in our custom Arch Raspberry Pi image.
+
+This kernel allows for blind scanning and playing higher bitrate
+feeds from FTA satellite streams using Updatelee's program 
+updateDVB. It is also excellent for ATSC use.
+
+
+# COMPILING README'S:
+
+SEE README.NATIVE-COMPILE_PI-2-3-3B+ FOR COMPILING NATIVE ON THE RPI 2/3
+
+SEE README.CROSS-COMPILE_PI-2-3-3B+ FOR CROSS-COMPILING ON A X64 DESKTOP
+
+# Tested with:
+
+The usb prof devices should work
+
+Some usb TBS devices work
+
+Skystar 2 eXpress HD
+
+Genpix Skywalker-1
+
+Hauppauge 950Q & 955Q
+
+Some usb InDtube ATSC devices work pretty good
+
+Others are reported working as well.
+
+# If you have further questions you can find Majorton or DarkSky on Rick Caylor's forum
+
+In "Computer and USB Satellite Receivers and Recording > Pi in the sky, etc." thread
+
+http://rickcaylor.websitetoolbox.com/
