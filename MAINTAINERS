@@ -2272,6 +2272,14 @@ L:	linux-leds@vger.kernel.org
 S:	Maintained
 F:	drivers/leds/leds-as3645a.c
 
+ASAHI KASEI AK7375 LENS VOICE COIL DRIVER
+M:	Tianshu Qiu <tian.shu.qiu@intel.com>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+S:	Maintained
+F:	drivers/media/i2c/ak7375.c
+F:	Documentation/devicetree/bindings/media/i2c/ak7375.txt
+
 ASAHI KASEI AK8974 DRIVER
 M:	Linus Walleij <linus.walleij@linaro.org>
 L:	linux-iio@vger.kernel.org
@@ -2971,13 +2979,9 @@ N:	bcm585*
 N:	bcm586*
 N:	bcm88312
 N:	hr2
-N:	stingray
-F:	arch/arm64/boot/dts/broadcom/northstar2/*
-F:	arch/arm64/boot/dts/broadcom/stingray/*
+F:	arch/arm64/boot/dts/broadcom/ns2*
 F:	drivers/clk/bcm/clk-ns*
-F:	drivers/clk/bcm/clk-sr*
 F:	drivers/pinctrl/bcm/pinctrl-ns*
-F:	include/dt-bindings/clock/bcm-sr*
 
 BROADCOM KONA GPIO DRIVER
 M:	Ray Jui <rjui@broadcom.com>
@@ -4407,6 +4411,13 @@ T:	git git://linuxtv.org/media_tree.git
 S:	Maintained
 F:	drivers/media/i2c/dw9714.c
 
+DONGWOON DW9807 LENS VOICE COIL DRIVER
+M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+S:	Maintained
+F:	drivers/media/i2c/dw9807.c
+
 DOUBLETALK DRIVER
 M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
 L:	blinux-list@redhat.com
@@ -5673,7 +5684,7 @@ F:	drivers/crypto/caam/
 F:	Documentation/devicetree/bindings/crypto/fsl-sec4.txt
 
 FREESCALE DIU FRAMEBUFFER DRIVER
-M:	Timur Tabi <timur@kernel.org>
+M:	Timur Tabi <timur@tabi.org>
 L:	linux-fbdev@vger.kernel.org
 S:	Maintained
 F:	drivers/video/fbdev/fsl-diu-fb.*
@@ -5773,7 +5784,7 @@ S:	Maintained
 F:	drivers/net/wan/fsl_ucc_hdlc*
 
 FREESCALE QUICC ENGINE UCC UART DRIVER
-M:	Timur Tabi <timur@kernel.org>
+M:	Timur Tabi <timur@tabi.org>
 L:	linuxppc-dev@lists.ozlabs.org
 S:	Maintained
 F:	drivers/tty/serial/ucc_uart.c
@@ -5797,7 +5808,7 @@ F:	drivers/net/ethernet/freescale/fs_enet/
 F:	include/linux/fs_enet_pd.h
 
 FREESCALE SOC SOUND DRIVERS
-M:	Timur Tabi <timur@kernel.org>
+M:	Timur Tabi <timur@tabi.org>
 M:	Nicolin Chen <nicoleotsuka@gmail.com>
 M:	Xiubo Li <Xiubo.Lee@gmail.com>
 R:	Fabio Estevam <fabio.estevam@nxp.com>
@@ -7244,6 +7255,9 @@ F:	drivers/dma/iop-adma.c
 INTEL IPU3 CSI-2 CIO2 DRIVER
 M:	Yong Zhi <yong.zhi@intel.com>
 M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+M:	Bingbu Cao <bingbu.cao@intel.com>
+R:	Tian Shu Qiu <tian.shu.qiu@intel.com>
+R:	Jian Xu Zheng <jian.xu.zheng@intel.com>
 L:	linux-media@vger.kernel.org
 S:	Maintained
 F:	drivers/media/pci/intel/ipu3/
@@ -8955,6 +8969,14 @@ T:	git git://linuxtv.org/media_tree.git
 S:	Maintained
 F:	drivers/media/dvb-frontends/stv6111*
 
+MEDIA DRIVERS FOR STM32 - DCMI
+M:	Hugues Fruchet <hugues.fruchet@st.com>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+S:	Supported
+F:	Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
+F:	drivers/media/platform/stm32/stm32-dcmi.c
+
 MEDIA DRIVERS FOR NVIDIA TEGRA - VDE
 M:	Dmitry Osipenko <digetx@gmail.com>
 L:	linux-media@vger.kernel.org
@@ -9637,6 +9659,14 @@ F:	Documentation/devicetree/bindings/media/i2c/mt9v032.txt
 F:	drivers/media/i2c/mt9v032.c
 F:	include/media/i2c/mt9v032.h
 
+MT9V111 APTINA CAMERA SENSOR
+M:	Jacopo Mondi <jacopo@jmondi.org>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+S:	Maintained
+F:	Documentation/devicetree/bindings/media/i2c/aptina,mt9v111.txt
+F:	drivers/media/i2c/mt9v111.c
+
 MULTIFUNCTION DEVICES (MFD)
 M:	Lee Jones <lee.jones@linaro.org>
 T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git
@@ -9886,7 +9916,6 @@ M:	Andrew Lunn <andrew@lunn.ch>
 M:	Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 M:	Florian Fainelli <f.fainelli@gmail.com>
 S:	Maintained
-F:	Documentation/devicetree/bindings/net/dsa/
 F:	net/dsa/
 F:	include/net/dsa.h
 F:	include/linux/dsa/
@@ -10460,6 +10489,14 @@ L:	linux-media@vger.kernel.org
 T:	git git://linuxtv.org/media_tree.git
 S:	Maintained
 F:	drivers/media/i2c/ov13858.c
+
+OMNIVISION OV2680 SENSOR DRIVER
+M:	Rui Miguel Silva <rmfrfs@gmail.com>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+S:	Maintained
+F:	drivers/media/i2c/ov2680.c
+F:	Documentation/devicetree/bindings/media/i2c/ov2680.txt
 
 OMNIVISION OV2685 SENSOR DRIVER
 M:	Shunqian Zheng <zhengsq@rock-chips.com>
@@ -11481,15 +11518,6 @@ W:	http://wireless.kernel.org/en/users/Drivers/p54
 S:	Obsolete
 F:	drivers/net/wireless/intersil/prism54/
 
-PROC FILESYSTEM
-R:	Alexey Dobriyan <adobriyan@gmail.com>
-L:	linux-kernel@vger.kernel.org
-L:	linux-fsdevel@vger.kernel.org
-S:	Maintained
-F:	fs/proc/
-F:	include/linux/proc_fs.h
-F:	tools/testing/selftests/proc/
-
 PROC SYSCTL
 M:	"Luis R. Rodriguez" <mcgrof@kernel.org>
 M:	Kees Cook <keescook@chromium.org>
@@ -11822,9 +11850,9 @@ F:  Documentation/devicetree/bindings/opp/kryo-cpufreq.txt
 F:  drivers/cpufreq/qcom-cpufreq-kryo.c
 
 QUALCOMM EMAC GIGABIT ETHERNET DRIVER
-M:	Timur Tabi <timur@kernel.org>
+M:	Timur Tabi <timur@codeaurora.org>
 L:	netdev@vger.kernel.org
-S:	Maintained
+S:	Supported
 F:	drivers/net/ethernet/qualcomm/emac/
 
 QUALCOMM HEXAGON ARCHITECTURE
@@ -11835,7 +11863,7 @@ S:	Supported
 F:	arch/hexagon/
 
 QUALCOMM HIDMA DRIVER
-M:	Sinan Kaya <okaya@kernel.org>
+M:	Sinan Kaya <okaya@codeaurora.org>
 L:	linux-arm-kernel@lists.infradead.org
 L:	linux-arm-msm@vger.kernel.org
 L:	dmaengine@vger.kernel.org
@@ -12858,6 +12886,14 @@ L:	linux-s390@vger.kernel.org
 W:	http://www.ibm.com/developerworks/linux/linux390/
 S:	Supported
 F:	net/smc/
+
+SHARP RJ54N1CB0C SENSOR DRIVER
+M:	Jacopo Mondi <jacopo@jmondi.org>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+S:	Odd fixes
+F:	drivers/media/i2c/rj54n1cb0c.c
+F:	include/media/i2c/rj54n1cb0c.h
 
 SH_VEU V4L2 MEM2MEM DRIVER
 L:	linux-media@vger.kernel.org
@@ -15140,6 +15176,14 @@ M:	Francois Romieu <romieu@fr.zoreil.com>
 L:	netdev@vger.kernel.org
 S:	Maintained
 F:	drivers/net/ethernet/via/via-velocity.*
+
+VICODEC VIRTUAL CODEC DRIVER
+M:	Hans Verkuil <hans.verkuil@cisco.com>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+W:	https://linuxtv.org
+S:	Maintained
+F:	drivers/media/platform/vicodec/*
 
 VIDEO MULTIPLEXER DRIVER
 M:	Philipp Zabel <p.zabel@pengutronix.de>

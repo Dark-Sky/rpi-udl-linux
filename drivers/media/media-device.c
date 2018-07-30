@@ -25,6 +25,7 @@
 #include <linux/types.h>
 #include <linux/pci.h>
 #include <linux/usb.h>
+#include <linux/version.h>
 
 #include <media/media-device.h>
 #include <media/media-devnode.h>
@@ -266,6 +267,7 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
 		memset(&kentity, 0, sizeof(kentity));
 		kentity.id = entity->graph_obj.id;
 		kentity.function = entity->function;
+		kentity.flags = entity->flags;
 		strlcpy(kentity.name, entity->name,
 			sizeof(kentity.name));
 
@@ -331,6 +333,7 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
 		kpad.id = pad->graph_obj.id;
 		kpad.entity_id = pad->entity->graph_obj.id;
 		kpad.flags = pad->flags;
+		kpad.index = pad->index;
 
 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
 			ret = -EFAULT;

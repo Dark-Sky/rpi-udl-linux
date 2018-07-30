@@ -1,3 +1,4 @@
+#include <linux/version.h>
 #include "gx1503_priv.h"
 
 static int GX1503_100Log(int iNumber_N)

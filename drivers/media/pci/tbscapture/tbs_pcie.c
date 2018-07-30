@@ -3,6 +3,7 @@
     Copyright (C) 2017 www.tbsdtv.com
 */
 
+#include <linux/version.h>
 #include <linux/pci.h>
 #include "tbs_pcie.h"
 #include "tbs_pcie-reg.h"

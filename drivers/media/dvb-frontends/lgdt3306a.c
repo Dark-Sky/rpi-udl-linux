@@ -2209,7 +2209,7 @@ static int lgdt3306a_get_constellation_samples(struct dvb_frontend *fe, struct d
 	u32 x;
 	u8 buf[2];
 
-	//fprintk("");
+	fprintk("");
 
 	for (x = 0 ; x < s->num ; x++)
 	{

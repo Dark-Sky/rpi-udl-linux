@@ -1892,7 +1892,7 @@ static int scaling_goodness(struct v4l2_subdev *subdev, int w, int ask_w,
 		val -= SCALING_GOODNESS_EXTREME;
 
 	dev_dbg(&client->dev, "w %d ask_w %d h %d ask_h %d goodness %d\n",
-		w, ask_h, h, ask_h, val);
+		w, ask_w, h, ask_h, val);
 
 	return val;
 }
@@ -3187,4 +3187,4 @@ module_i2c_driver(smiapp_i2c_driver);
 
 MODULE_AUTHOR("Sakari Ailus <sakari.ailus@iki.fi>");
 MODULE_DESCRIPTION("Generic SMIA/SMIA++ camera module driver");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v2");
