@@ -892,7 +892,7 @@ static int au8522_get_spectrum_scan(struct dvb_frontend *fe, struct dvb_fe_spect
 			fe->ops.tuner_ops.get_rf_strength(fe, &tmp);
 			tmp = 0xFFFF - tmp;
 			tmp = (tmp * 100) / 256;
-			*(s->rf_level + x) = 0 - tmp;
+			*(s->rf_level + x) = 0 - tmp + 2700;
 		}
 	}
 
