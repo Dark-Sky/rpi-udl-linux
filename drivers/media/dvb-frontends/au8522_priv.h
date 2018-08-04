@@ -70,6 +70,11 @@ struct au8522_state {
 	u32 rev;
 	struct v4l2_ctrl_handler hdl;
 
+	/* Statistics */
+	u16 strength;
+	u16 snr;
+	u32 ucblocks;
+
 #ifdef CONFIG_MEDIA_CONTROLLER
 	struct media_pad pads[DEMOD_NUM_PADS];
 #endif
