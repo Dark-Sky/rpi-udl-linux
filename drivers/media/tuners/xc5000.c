@@ -467,7 +467,14 @@ static int xc_set_rf_frequency(struct xc5000_priv *priv, u32 freq_hz)
 	/* Starting in firmware version 1.1.44, Xceive recommends using the
 	   FINERFREQ for all normal tuning (the doc indicates reg 0x03 should
 	   only be used for fast scanning for channel lock) */
-	return xc_write_reg(priv, XREG_FINERFREQ, freq_code);
+	switch (priv->chip_id) {
+	default:
+	case XC5000A:
+		return xc_write_reg(priv, XREG_FINERFREQ, freq_code);
+	/* speed up spectrum_scan() on xc5000c */
+	case XC5000C:
+		return xc_write_reg(priv, XREG_RF_FREQ, freq_code);
+	}
 }
 
 
