@@ -1125,14 +1125,12 @@ static int xc5000_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
 	struct xc5000_priv *priv = fe->tuner_priv;
 
 	xc_get_totalgain(priv, strength);
-	*strength = 0xFFFF - *strength;
 	/* newer xc5000c reports totalgain a bit lower than xc5000a ??*/
 	if(priv->chip_id == XC5000A) {
 		*strength = 0xFFFF - *strength;
 	} else {
 		*strength = 0xFFFF - *strength + 0x700;
-}
-
+	}
 \
 	return 0;
 }
