@@ -1722,7 +1722,7 @@ static void request_module_async(struct work_struct *work)
 		request_module("cx231xx-alsa");
 
 	if (dev->board.has_dvb)
-		request_module("cx231xx-dvb");
+		request_module("cx231xx-dvb-ci");
 
 }
 
