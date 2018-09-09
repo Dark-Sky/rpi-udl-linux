@@ -25,7 +25,7 @@
 #include <linux/dvb/frontend.h>
 #include "tas2101.h"
 
-#if IS_ENABLED(CONFIG_DVB_TAS2971)
+#if IS_REACHABLE(CONFIG_DVB_TAS2971)
 extern struct dvb_frontend *tas2971_attach(
 	const struct tas2101_config *cfg,
 	struct i2c_adapter *i2c);

@@ -23,6 +23,10 @@
 #define MBOX_DATA28(msg)		((msg) & ~0xf)
 #define MBOX_CHAN_PROPERTY		8
 
+#define MAX_RPI_FW_PROP_BUF_SIZE	32
+
+static struct platform_device *rpi_hwmon;
+
 #define UNDERVOLTAGE_BIT		BIT(0)
 
 
@@ -183,10 +187,14 @@ int rpi_firmware_property(struct rpi_firmware *fw,
 	/* Single tags are very small (generally 8 bytes), so the
 	 * stack should be safe.
 	 */
-	u8 data[buf_size + sizeof(struct rpi_firmware_property_tag_header)];
+	u8 data[sizeof(struct rpi_firmware_property_tag_header) +
+		MAX_RPI_FW_PROP_BUF_SIZE];
 	struct rpi_firmware_property_tag_header *header =
 		(struct rpi_firmware_property_tag_header *)data;
 	int ret;
+
+	if (WARN_ON(buf_size > sizeof(data) - sizeof(*header)))
+		return -EINVAL;
 
 	header->tag = tag;
 	header->buf_size = buf_size;
@@ -194,7 +202,7 @@ int rpi_firmware_property(struct rpi_firmware *fw,
 	memcpy(data + sizeof(struct rpi_firmware_property_tag_header),
 	       tag_data, buf_size);
 
-	ret = rpi_firmware_property_list(fw, &data, sizeof(data));
+	ret = rpi_firmware_property_list(fw, &data, buf_size + sizeof(*header));
 	memcpy(tag_data,
 	       data + sizeof(struct rpi_firmware_property_tag_header),
 	       buf_size);
@@ -355,6 +363,20 @@ rpi_firmware_print_firmware_revision(struct rpi_firmware *fw)
 	}
 }
 
+static void
+rpi_register_hwmon_driver(struct device *dev, struct rpi_firmware *fw)
+{
+	u32 packet;
+	int ret = rpi_firmware_property(fw, RPI_FIRMWARE_GET_THROTTLED,
+					&packet, sizeof(packet));
+
+	if (ret)
+		return;
+
+	rpi_hwmon = platform_device_register_data(dev, "raspberrypi-hwmon",
+						  -1, NULL, 0);
+}
+
 static int rpi_firmware_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -388,6 +410,7 @@ static int rpi_firmware_probe(struct platform_device *pdev)
 	g_pdev = pdev;
 
 	rpi_firmware_print_firmware_revision(fw);
+	rpi_register_hwmon_driver(dev, fw);
 
 	schedule_delayed_work(&fw->get_throttled_poll_work, 0);
 
@@ -399,6 +422,10 @@ static int rpi_firmware_remove(struct platform_device *pdev)
 	struct rpi_firmware *fw = platform_get_drvdata(pdev);
 
 	cancel_delayed_work_sync(&fw->get_throttled_poll_work);
+
+	platform_device_unregister(rpi_hwmon);
+	rpi_hwmon = NULL;
+
 	mbox_free_channel(fw->chan);
 	g_pdev = NULL;
 

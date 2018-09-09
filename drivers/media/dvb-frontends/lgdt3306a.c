@@ -2209,7 +2209,7 @@ static int lgdt3306a_get_constellation_samples(struct dvb_frontend *fe, struct d
 	u32 x;
 	u8 buf[2];
 
-	fprintk("");
+	//fprintk("");
 
 	for (x = 0 ; x < s->num ; x++)
 	{
@@ -2224,9 +2224,9 @@ static const struct dvb_frontend_ops lgdt3306a_ops = {
 	.delsys = { SYS_DVBC_ANNEX_B, SYS_ATSC },
 	.info = {
 		.name = "LG Electronics LGDT3306A VSB/QAM Frontend",
-		.frequency_min      = 54000000,
-		.frequency_max      = 858000000,
-		.frequency_stepsize = 62500,
+		.frequency_min_hz      =  54 * MHz,
+		.frequency_max_hz      = 858 * MHz,
+		.frequency_stepsize_hz = 62500,
 		.caps = FE_CAN_8VSB | FE_CAN_QAM_AUTO | FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_HAS_EXTENDED_CAPS
 	},
 	.extended_info = {

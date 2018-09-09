@@ -797,7 +797,7 @@ static struct v4l2_mbus_framefmt *__mt9v111_get_pad_format(
 {
 	switch (which) {
 	case V4L2_SUBDEV_FORMAT_TRY:
-#if IS_ENABLED(CONFIG_MEDIA_CONTROLLER)
+#if IS_ENABLED(CONFIG_VIDEO_V4L2_SUBDEV_API)
 		return v4l2_subdev_get_try_format(&mt9v111->sd, cfg, pad);
 #else
 		return &cfg->try_fmt;
@@ -848,7 +848,7 @@ static int mt9v111_enum_frame_size(struct v4l2_subdev *subdev,
 				   struct v4l2_subdev_pad_config *cfg,
 				   struct v4l2_subdev_frame_size_enum *fse)
 {
-	if (fse->pad || fse->index > ARRAY_SIZE(mt9v111_frame_sizes))
+	if (fse->pad || fse->index >= ARRAY_SIZE(mt9v111_frame_sizes))
 		return -EINVAL;
 
 	fse->min_width = mt9v111_frame_sizes[fse->index].width;
@@ -884,7 +884,7 @@ static int mt9v111_set_format(struct v4l2_subdev *subdev,
 	struct v4l2_mbus_framefmt new_fmt;
 	struct v4l2_mbus_framefmt *__fmt;
 	unsigned int best_fit = ~0L;
-	unsigned int idx;
+	unsigned int idx = 0;
 	unsigned int i;
 
 	mutex_lock(&mt9v111->stream_mutex);

@@ -90,7 +90,7 @@ config VIDEO_PXA27x
 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
 
 config VIDEO_QCOM_CAMSS
-	tristate "Qualcomm 8x16 V4L2 Camera Subsystem driver"
+	tristate "Qualcomm V4L2 Camera Subsystem driver"
 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
 	select VIDEOBUF2_DMA_SG
@@ -535,6 +535,17 @@ menuconfig CEC_PLATFORM_DRIVERS
 	depends on MEDIA_CEC_SUPPORT
 
 if CEC_PLATFORM_DRIVERS
+
+config VIDEO_CROS_EC_CEC
+	tristate "ChromeOS EC CEC driver"
+	depends on MFD_CROS_EC
+	select CEC_CORE
+	select CEC_NOTIFIER
+	---help---
+	  If you say yes here you will get support for the
+	  ChromeOS Embedded Controller's CEC.
+	  The CEC bus is present in the HDMI connector and enables communication
+	  between compatible devices.
 
 config VIDEO_MESON_AO_CEC
 	tristate "Amlogic Meson AO CEC driver"

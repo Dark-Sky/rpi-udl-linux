@@ -286,16 +286,16 @@ struct cx23885_board cx23885_boards[] = {
 		.portc		= CX23885_MPEG_DVB,
 	},
 	[CX23885_BOARD_TBS_6920] = {
-		.name		= "TurboSight TBS 6920",
+		.name		= "TurboSight TBS 6920 DVB-S/S2",
 		.portb		= CX23885_MPEG_DVB,
 	},
 	[CX23885_BOARD_TBS_6980] = {
-		.name		= "TurboSight TBS 6980",
+		.name		= "TurboSight TBS 6980 DVB-S/S2",
 		.portb		= CX23885_MPEG_DVB,
 		.portc		= CX23885_MPEG_DVB,
 	},
 	[CX23885_BOARD_TBS_6981] = {
-		.name		= "TurboSight TBS 6981",
+		.name		= "TurboSight TBS 6981 DVB-S/S2",
 		.portb		= CX23885_MPEG_DVB,
 		.portc		= CX23885_MPEG_DVB,
 	},

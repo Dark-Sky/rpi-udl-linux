@@ -427,16 +427,16 @@ static int do_dvb_audio_ioctl(struct dvb_device *dvbdev,
 	//struct saa716x_dev *saa716x	= sti7109->dev;
 	int ret = 0;
 
-	switch (cmd) {
-	case AUDIO_GET_PTS:
-	{
-		*(u64 *)parg = sti7109->audio_pts;
-		break;
-	}
-	default:
+//	switch (cmd) {
+//	case AUDIO_GET_PTS:
+//	{
+//		*(u64 *)parg = sti7109->audio_pts;
+//		break;
+//	}
+//	default:
 		ret = -ENOIOCTLCMD;
-		break;
-	}
+//		break;
+//	}
 	return ret;
 }
 

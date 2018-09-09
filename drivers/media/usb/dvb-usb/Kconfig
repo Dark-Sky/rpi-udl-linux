@@ -462,4 +462,14 @@ config DVB_USB_TBS5301
         help
           Say Y here to support the TurboSight 5301 hdmi USB2.0 receivers
 
+config DVB_USB_TBS5590
+       tristate "Turbosight TBS5590 usb2.0 capture support"
+        depends on DVB_USB
+        select DVB_SI2183 if MEDIA_SUBDRV_AUTOSELECT
+        select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+	select MEDIA_TUNER_AV201X if MEDIA_SUBDRV_AUTOSELECT
+	select DVB_TBSPRIV if MEDIA_SUBDRV_AUTOSELECT
+        help
+          Say Y here to support the Turbosight TBS5590 USB2.0 DVB-T/T2/C/C2/S/S2/S2x ASI-IN device
+
 

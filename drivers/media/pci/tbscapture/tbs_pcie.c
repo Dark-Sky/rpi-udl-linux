@@ -3,7 +3,6 @@
     Copyright (C) 2017 www.tbsdtv.com
 */
 
-#include <linux/version.h>
 #include <linux/pci.h>
 #include "tbs_pcie.h"
 #include "tbs_pcie-reg.h"
@@ -230,8 +229,22 @@ static int tbs_open(struct file *file)
 {
 	struct tbs_video *videodev = video_drvdata(file);
 	struct pci_dev *pci = videodev->dev->pdev;
+	u32 temp1,temp2;
+	u32 h_para,v_para;
+	u32 frame_ps,pori;
+	struct tbs_pcie_dev *dev = videodev->dev;
 	if(pci->subsystem_vendor == 0x6324) //tbs6324 sdi
 	{
+		temp1= TBS_PCIE_READ(0x0,40);
+		temp2 =TBS_PCIE_READ(0x0,44);
+		h_para = ((temp1 & 0xff)<<8) + ((temp1 & 0xff00)>>8);
+		v_para = ((temp1 & 0xff0000)>>8) + ((temp1 & 0xff000000)>>24);
+		frame_ps = temp2 &0xff;
+		pori = (temp2>>8) & 0xff;
+		
+
+		printk("fpga get para: %x, %x == v:%d, h:%d, frame:%d, P:%d\n", temp1,temp2,v_para,h_para,frame_ps,pori);
+
 		tbs_sdi_video_param(videodev->dev, videodev->index>>1);
 	}
 	else //hdmi
@@ -1005,9 +1018,9 @@ static void tbs_sdi_video_param(struct tbs_pcie_dev *dev,int index)
 
 	if(!v_interlaced && v_refq>30 && dev->video[index].width==1920 && dev->video[index].height==1080) 		
 	{
-		printk("HDMI 1080 50/60 Progressive change to Interlaced Input  \n");
+		printk("SDI 1080 50/60 Progressive change to Interlaced Input  \n");
 		dev->video[index].Interlaced = 1;
-		
+		dev->video[index].fps>>=1;
 		//enable PtoI: bit24 set to 1 by gpio offset address 8
 		regval =0x1;
 		TBS_PCIE_WRITE(0x0, 8, regval);
@@ -1019,9 +1032,12 @@ static void tbs_sdi_video_param(struct tbs_pcie_dev *dev,int index)
 		TBS_PCIE_WRITE(0x0, 8, regval);
 		dev->video[index].Interlaced = v_interlaced;
 		if(v_interlaced)
-			printk("HDMI Interlaced Input  \n");
+		{
+			dev->video[index].fps>>=1;
+			printk("SDI Interlaced Input  \n");
+		}
 		else
-			printk("HDMI Progressive Input  \n");
+			printk("SDI Progressive Input  \n");
 	}
 	printk("pix:%d line:%d frameRate:%d IorP:%d regvalue:%x\n",dev->video[index].width,dev->video[index].height,v_refq,dev->video[index].Interlaced,v_regdata );	
 
@@ -1029,6 +1045,7 @@ static void tbs_sdi_video_param(struct tbs_pcie_dev *dev,int index)
 static void tbs_hdmi_video_param(struct tbs_pcie_dev *dev,int index)
 {
 	struct tbs_adapter *tbs_adap;
+	struct pci_dev *pci = dev->pdev;
 	u8 tmp[2];
 	u32 tmp_B,v_refq=0;
 	int regval;
@@ -1073,17 +1090,17 @@ static void tbs_hdmi_video_param(struct tbs_pcie_dev *dev,int index)
 	{
 		printk("HDMI 1080 50/60 Progressive change to Interlaced Input  \n");
 		dev->video[index].Interlaced = 1;
-		
+		dev->video[index].fps>>=1;
 		//enable PtoI: bit24 set to 1 by gpio offset address 8
 		regval =0x1;
 		TBS_PCIE_WRITE(0x0, offset, regval);
 
 	}
-	else if((v_refq>50) && (dev->video[index].width==1280) && (dev->video[index].height==720)) 		
+	else if((v_refq>50) && (dev->video[index].width==1280) && (dev->video[index].height==720) &&(pci->subsystem_vendor ==0x6312)) 		
 	{
 		printk("HDMI 720 60 Progressive change to Interlaced Input  \n");
 		dev->video[index].Interlaced = 1;
-		
+		dev->video[index].fps>>=1;
 		//enable PtoI: bit24 set to 1 by gpio offset address 8
 		regval =0x1;
 		TBS_PCIE_WRITE(0x0, offset, regval);
@@ -1099,7 +1116,7 @@ static void tbs_hdmi_video_param(struct tbs_pcie_dev *dev,int index)
 			printk("HDMI Interlaced Input  \n");
 			dev->video[index].Interlaced = 1;
 			dev->video[index].height<<=1;
-
+			dev->video[index].fps>>=1;
 			//disable PtoI: bit24 set to default value 0
 			regval =0x0;
 			TBS_PCIE_WRITE(0x0, offset, regval);
@@ -1108,6 +1125,7 @@ static void tbs_hdmi_video_param(struct tbs_pcie_dev *dev,int index)
 		{
 			printk("HDMI Progressive change to Interlaced Input  \n");
 			dev->video[index].Interlaced = 1;
+			dev->video[index].fps>>=1;
 		}
 		else{
 			printk("HDMI Progressive Input  \n");
@@ -1126,7 +1144,7 @@ static void tbs6314_mac(struct tbs_adapter *tbs_adap)
 	tbs_adap = &dev->tbs_pcie_adap[0];
 	i2c_read_reg(&tbs_adap->i2c->i2c_adap,0xa0, 0xa0,tmp, 4);
 	i2c_read_reg(&tbs_adap->i2c->i2c_adap,0xa0, 0xa4,tmp+4, 2);
-	printk("mac address : %x, %x, %x, %x, %x, %x\n", tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5]);
+	//printk("mac address : %x, %x, %x, %x, %x, %x\n", tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5]);
 
 }
 static void tbs6312_mac(struct tbs_adapter *tbs_adap)
@@ -1304,7 +1322,7 @@ int tbs_video_register(struct tbs_pcie_dev *dev)
 			printk(KERN_ERR " v4l2_device_register failed!\n");
 			goto fail;
 		}else{
-			printk(" TBS HDMI Capture %d register OK! \n",i);
+			printk(" TBS video Capture %d register OK! \n",i);
 		}
 	}
 	return 0;
@@ -1460,7 +1478,6 @@ static snd_pcm_uframes_t tbs_pcie_audio_pointer(struct snd_pcm_substream *substr
 	return bytes_to_frames(runtime,chip->pos);
 }
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 0)
 static int tbs_pcie_audio_copy_user(struct snd_pcm_substream *substream,
 	int channel,
 	unsigned long pos,
@@ -1472,19 +1489,6 @@ static int tbs_pcie_audio_copy_user(struct snd_pcm_substream *substream,
 	ret = copy_to_user(dst,runtime->dma_area+pos,count);
 	return 0;
 }
-#else
-static int tbs_pcie_audio_copy(struct snd_pcm_substream *substream,
-	int channel,
-	snd_pcm_uframes_t pos,
-	void __user *dst,
-	snd_pcm_uframes_t count)
-{
-	struct snd_pcm_runtime *runtime = substream->runtime;
-	int ret;
-	ret = copy_to_user(dst,runtime->dma_area+frames_to_bytes(runtime,pos),frames_to_bytes(runtime,count));
-	return 0;
-}
-#endif
 
 struct snd_pcm_ops tbs_pcie_pcm_ops ={
 	.open =			tbs_pcie_audio_open,
@@ -1495,11 +1499,7 @@ struct snd_pcm_ops tbs_pcie_pcm_ops ={
 	.prepare =		tbs_pcie_audio_prepare,
 	.trigger =		tbs_pcie_audio_trigger,
 	.pointer =		tbs_pcie_audio_pointer,
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 0)
 	.copy_user =	tbs_pcie_audio_copy_user,
-#else
-	.copy =			tbs_pcie_audio_copy,
-#endif
 };
 
 int tbs_audio_register(struct tbs_pcie_dev *dev)

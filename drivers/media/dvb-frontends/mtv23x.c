@@ -751,7 +751,7 @@ static int mtv23x_init(struct dvb_frontend *fe)
 	struct i2c_client*client = fe->demodulator_priv;
 	struct mtv23x_dev*dev = i2c_get_clientdata(client);
 	int ret,i,temp,read0,read1 ;
-//	enum E_RTV_BANDWIDTH_TYPE bandwidth = RTV_BW_MODE_6MHZ;
+	enum E_RTV_BANDWIDTH_TYPE bandwidth = RTV_BW_MODE_6MHZ;
 	u8 rev_num;
 	u8 ALDO_OUT = 6,DLDO_OUT = 1;
 	
@@ -1188,7 +1188,7 @@ static int rtvRF_ConfigureClkCKSYN(struct mtv23x_dev*dev,enum E_RTV_BANDWIDTH_TY
 	return 0;
 }
 
-static int rtvRF_ConfigureIIRFilter(struct mtv23x_dev*dev,enum E_RTV_BANDWIDTH_TYPE eBwType)
+static rtvRF_ConfigureIIRFilter(struct mtv23x_dev*dev,enum E_RTV_BANDWIDTH_TYPE eBwType)
 {
 	int temp;
 	u8 WR95 = 0;
@@ -2258,11 +2258,9 @@ static struct dvb_frontend_ops mtv23x_ops = {
 	.delsys = {SYS_ISDBT},
 	.info 	= {
 		.name = "RAONTECH MTV23X",
-		.type = FE_OFDM,
-		.frequency_min = 76000000,
-		.frequency_max = 858000000,
-		.frequency_stepsize = 166667,
-		.frequency_tolerance = 0,
+		.frequency_min_hz = 76 * MHz,
+		.frequency_max_hz = 858 * MHz,
+		.frequency_stepsize_hz = 166667,
 		.caps =	FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
 				FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
 				FE_CAN_QPSK | FE_CAN_QAM_16 |

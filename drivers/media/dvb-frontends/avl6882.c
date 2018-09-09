@@ -27,7 +27,7 @@
 #include <linux/string.h>
 #include <linux/bitrev.h>
 #include <linux/firmware.h>
-#include "media/dvb_frontend.h"
+#include <media/dvb_frontend.h>
 #include "avl6882.h"
 #include "avl6882_priv.h"
 
@@ -106,34 +106,34 @@ static int avl6882_i2c_wrm(struct avl6882_priv *priv, u8 *buf, int len)
 #endif
 /* write 32bit words at addr */
 #define MAX_WORDS_WR_LEN	((MAX_I2C_WRITE_SIZE-3) / 4)
-//static int avl6882_i2c_wr_data(struct avl6882_priv *priv,
-//				u32 addr, u32 *data, int len)
-//{
-//	int ret = 0, this_len;
-//	u32 buf[MAX_WORDS_WR_LEN + 1], *p;
-//	u8 *b = ((u8*) buf) + 1, i;
+static int avl6882_i2c_wr_data(struct avl6882_priv *priv,
+				u32 addr, u32 *data, int len)
+{
+	int ret = 0, this_len;
+	u32 buf[MAX_WORDS_WR_LEN + 1], *p;
+	u8 *b = ((u8*) buf) + 1, i;
 
 
-//	while (len > 0) {
-//		p = buf;
-//		*(p++) = cpu_to_be32(addr);
+	while (len > 0) {
+		p = buf;
+		*(p++) = cpu_to_be32(addr);
 
-//		this_len = (len > MAX_WORDS_WR_LEN) ? MAX_WORDS_WR_LEN : len;
+		this_len = (len > MAX_WORDS_WR_LEN) ? MAX_WORDS_WR_LEN : len;
 
-//		for (i = 0; i < this_len; i++)
-//			*(p++) = cpu_to_be32(*data++);
+		for (i = 0; i < this_len; i++)
+			*(p++) = cpu_to_be32(*data++);
 
-//		ret = avl6882_i2c_wr(priv, b, this_len * 4 + 3);
-//		if (ret)
-//			break;
+		ret = avl6882_i2c_wr(priv, b, this_len * 4 + 3);
+		if (ret)
+			break;
 
-//		len -= this_len;
-//		if (len)
-//			addr += this_len * 4;
+		len -= this_len;
+		if (len)
+			addr += this_len * 4;
 
-//	}
-//	return ret;
-//}
+	}
+	return ret;
+}
 
 static int avl6882_i2c_wr_reg(struct avl6882_priv *priv,
 	u32 addr, u32 data, int reg_size)
@@ -209,51 +209,51 @@ inline static int avl6882_gpio_set(struct avl6882_priv *priv, u8 pin, u8 val)
 	return AVL6882_WR_REG32(priv, AVLREG_GPIO_BASE + pin, val);
 }
 
-//static int avl6882_setup_pll(struct avl6882_priv *priv)
-//{
-//	int ret;
+static int avl6882_setup_pll(struct avl6882_priv *priv)
+{
+	int ret;
 
-//	/* sys_pll */
-//	ret  = AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divr, 2);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divf, 99);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divq, 7);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_range, 1);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divq2, 11);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divq3, 13);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_enable2, 0);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_enable3, 0);
+	/* sys_pll */
+	ret  = AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divr, 2);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divf, 99);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divq, 7);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_range, 1);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divq2, 11);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_divq3, 13);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_enable2, 0);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_sys_pll_enable3, 0);
 
-//	/* mpeg_pll */
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divr, 0);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divf, 35);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divq, 7);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_range, 3);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divq2, 11);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divq3, 13);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_enable2, 0);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_enable3, 0);
+	/* mpeg_pll */
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divr, 0);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divf, 35);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divq, 7);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_range, 3);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divq2, 11);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_divq3, 13);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_enable2, 0);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_mpeg_pll_enable3, 0);
 
-//	/* adc_pll */
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divr, 2);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divf, 99);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divq, 7);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_range, 1);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divq2, 11);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divq3, 13);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_enable2, 1);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_enable3, 1);
+	/* adc_pll */
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divr, 2);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divf, 99);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divq, 7);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_range, 1);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divq2, 11);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_divq3, 13);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_enable2, 1);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_adc_pll_enable3, 1);
 
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_RESET, 0);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_RESET, 1);
-//	msleep(20);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_RESET, 0);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_RESET, 1);
+	msleep(20);
 
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_dll_out_phase, 96);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_dll_rd_phase, 0);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_deglitch_mode, 1);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_dll_init, 1);
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_dll_init, 0);
-//	return ret;
-//}
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_dll_out_phase, 96);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_dll_rd_phase, 0);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_deglitch_mode, 1);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_dll_init, 1);
+	ret |= AVL6882_WR_REG32(priv, AVLREG_PLL_dll_init, 0);
+	return ret;
+}
 
 #define DEMOD_WAIT_RETRIES	(10)
 #define DEMOD_WAIT_MS		(20)
@@ -289,283 +289,283 @@ static int avl6882_exec_n_wait(struct avl6882_priv *priv, u8 cmd)
 
 
 #define DMA_MAX_TRIES	(20)
-//static int avl6882_patch_demod(struct avl6882_priv *priv, u32 *patch)
-//{
-//	int ret = 0;
-//	u8 unary_op, binary_op, addr_mode_op;
-//	u32 cmd, num_cmd_words, next_cmd_idx, num_cond_words, num_rvs;
-//	u32 condition = 0;
-//	u32 value = 0;
-//	u32 operation;
-//	u32 tmp_top_valid, core_rdy_word;
-//	u32 exp_crc_val, crc_result;
-//	u32 data = 0;
-//	u32 type, ref_addr, ref_size;
-//	u32 data_section_offset;
-//	u32 args_addr, src_addr, dest_addr, data_offset, length;
-//	u32 idx, len, i;
-//	u32 variable_array[PATCH_VAR_ARRAY_SIZE];
+static int avl6882_patch_demod(struct avl6882_priv *priv, u32 *patch)
+{
+	int ret = 0;
+	u8 unary_op, binary_op, addr_mode_op;
+	u32 cmd, num_cmd_words, next_cmd_idx, num_cond_words, num_rvs;
+	u32 condition = 0;
+	u32 value = 0;
+	u32 operation;
+	u32 tmp_top_valid, core_rdy_word;
+	u32 exp_crc_val, crc_result;
+	u32 data = 0;
+	u32 type, ref_addr, ref_size;
+	u32 data_section_offset;
+	u32 args_addr, src_addr, dest_addr, data_offset, length;
+	u32 idx, len, i;
+	u32 variable_array[PATCH_VAR_ARRAY_SIZE];
 
-//	for(i=0; i < PATCH_VAR_ARRAY_SIZE; i++)
-//		variable_array[i] = 0;
+	for(i=0; i < PATCH_VAR_ARRAY_SIZE; i++)
+		variable_array[i] = 0;
 
 
-//	printk("PATCHING---------\n");
+	printk("PATCHING---------\n");
 
-//	//total_patch_len = patch[1];
-//	//standard = patch[2];
-//	idx = 3;
-//	args_addr = patch[idx++];
-//	data_section_offset = patch[idx++];
-//	/* reserved length */
-//	len = patch[idx++];
-//	idx += len;
-//	/* script length */
-//	len = patch[idx++];
-//	len += idx;
+	//total_patch_len = patch[1];
+	//standard = patch[2];
+	idx = 3;
+	args_addr = patch[idx++];
+	data_section_offset = patch[idx++];
+	/* reserved length */
+	len = patch[idx++];
+	idx += len;
+	/* script length */
+	len = patch[idx++];
+	len += idx;
 
-//	while (idx < len) {
-//		num_cmd_words = patch[idx++];
-//		next_cmd_idx = idx + num_cmd_words - 1;
-//		num_cond_words = patch[idx++];
-//		if (num_cond_words == 0) {
-//			condition = 1;
-//		} else {
-//			for (i = 0; i < num_cond_words; i++) {
-//				operation = patch[idx++];
-//				value = patch[idx++];
-//				unary_op = (operation >> 8) & 0xff;
-//				binary_op = operation & 0xff;
-//				addr_mode_op = ((operation >> 16) & 0x3);
+	while (idx < len) {
+		num_cmd_words = patch[idx++];
+		next_cmd_idx = idx + num_cmd_words - 1;
+		num_cond_words = patch[idx++];
+		if (num_cond_words == 0) {
+			condition = 1;
+		} else {
+			for (i = 0; i < num_cond_words; i++) {
+				operation = patch[idx++];
+				value = patch[idx++];
+				unary_op = (operation >> 8) & 0xff;
+				binary_op = operation & 0xff;
+				addr_mode_op = ((operation >> 16) & 0x3);
 
-//				if ((addr_mode_op == PATCH_OP_ADDR_MODE_VAR_IDX) &&
-//				    (binary_op != PATCH_OP_BINARY_STORE)) {
-//					value = variable_array[value]; //grab variable value
-//				}
+				if ((addr_mode_op == PATCH_OP_ADDR_MODE_VAR_IDX) &&
+				    (binary_op != PATCH_OP_BINARY_STORE)) {
+					value = variable_array[value]; //grab variable value
+				}
 
-//				switch(unary_op) {
-//				case PATCH_OP_UNARY_LOGICAL_NEGATE:
-//					value = !value;
-//					break;
-//				case PATCH_OP_UNARY_BITWISE_NEGATE:
-//					value = ~value;
-//					break;
-//				default:
-//					break;
-//				}
-//				switch(binary_op) {
-//				case PATCH_OP_BINARY_LOAD:
-//					condition = value;
-//					break;
-//				case PATCH_OP_BINARY_STORE:
-//					variable_array[value] = condition;
-//					break;
-//				case PATCH_OP_BINARY_AND:
-//					condition = condition && value;
-//					break;
-//				case PATCH_OP_BINARY_OR:
-//					condition = condition || value;
-//					break;
-//				case PATCH_OP_BINARY_BITWISE_AND:
-//					condition = condition & value;
-//					break;
-//				case PATCH_OP_BINARY_BITWISE_OR:
-//					condition = condition | value;
-//					break;
-//				case PATCH_OP_BINARY_EQUALS:
-//					condition = condition == value;
-//					break;
-//				case PATCH_OP_BINARY_NOT_EQUALS:
-//					condition = condition != value;
-//					break;
-//				default:
-//					break;
-//				}
-//			}
-//		}
+				switch(unary_op) {
+				case PATCH_OP_UNARY_LOGICAL_NEGATE:
+					value = !value;
+					break;
+				case PATCH_OP_UNARY_BITWISE_NEGATE:
+					value = ~value;
+					break;
+				default:
+					break;
+				}
+				switch(binary_op) {
+				case PATCH_OP_BINARY_LOAD:
+					condition = value;
+					break;
+				case PATCH_OP_BINARY_STORE:
+					variable_array[value] = condition;
+					break;
+				case PATCH_OP_BINARY_AND:
+					condition = condition && value;
+					break;
+				case PATCH_OP_BINARY_OR:
+					condition = condition || value;
+					break;
+				case PATCH_OP_BINARY_BITWISE_AND:
+					condition = condition & value;
+					break;
+				case PATCH_OP_BINARY_BITWISE_OR:
+					condition = condition | value;
+					break;
+				case PATCH_OP_BINARY_EQUALS:
+					condition = condition == value;
+					break;
+				case PATCH_OP_BINARY_NOT_EQUALS:
+					condition = condition != value;
+					break;
+				default:
+					break;
+				}
+			}
+		}
 
-//		AVL6882_RD_REG32(priv, 0x29A648, &tmp_top_valid);
-//		AVL6882_RD_REG32(priv, 0x0A0, &core_rdy_word);
+		AVL6882_RD_REG32(priv, 0x29A648, &tmp_top_valid);
+		AVL6882_RD_REG32(priv, 0x0A0, &core_rdy_word);
 
-//		if (condition) {
-//			cmd = patch[idx++];
-//			switch(cmd) {
-//			case PATCH_CMD_PING:
-//				ret = avl6882_exec_n_wait(priv, AVL_FW_CMD_PING);
-//				num_rvs = patch[idx++];
-//				i = patch[idx];
-//				variable_array[i] = (ret == 0);
-//				break;
-//			case PATCH_CMD_VALIDATE_CRC:
-//				exp_crc_val = patch[idx++];
-//				src_addr = patch[idx++];
-//				length = patch[idx++];
-//				AVL6882_WR_REG32(priv,0x200 + rc_fw_command_args_addr_iaddr_offset, args_addr);
-//				AVL6882_WR_REG32(priv,args_addr+0, src_addr);
-//				AVL6882_WR_REG32(priv,args_addr+4, length);
-//				ret = avl6882_exec_n_wait(priv, AVL_FW_CMD_CALC_CRC);
-//				AVL6882_RD_REG32(priv,args_addr+8, &crc_result);
-//				num_rvs = patch[idx++];
-//				i = patch[idx];
-//				variable_array[i] = (crc_result == exp_crc_val);
-//				break;
-//			case PATCH_CMD_LD_TO_DEVICE:
-//				length = patch[idx++];
-//				dest_addr = patch[idx++];
-//				data_offset = patch[idx++];
-//				data_offset += data_section_offset;
-//				ret = avl6882_i2c_wr_data(priv, dest_addr, &patch[data_offset], length);
-//				num_rvs = patch[idx++];
-//				break;
-//			case PATCH_CMD_LD_TO_DEVICE_IMM:
-//				length = patch[idx++];
-//				dest_addr = patch[idx++];
-//				data = patch[idx++];
-//				ret = avl6882_i2c_wr_reg(priv, dest_addr, data, length);
-//				num_rvs = patch[idx++];
-//				break;
-//			case PATCH_CMD_RD_FROM_DEVICE:
-//				length = patch[idx++];
-//				src_addr = patch[idx++];
-//				num_rvs = patch[idx++];
-//				ret = avl6882_i2c_rd_reg(priv, src_addr, &data, length);
-//				i = patch[idx];
-//				variable_array[i] = data;
-//				break;
-//			case PATCH_CMD_DMA:
-//				dest_addr = patch[idx++];
-//				length = patch[idx++];
-//				if (length > 0)
-//					ret = avl6882_i2c_wr_data(priv, dest_addr, &patch[idx], length * 3);
-//				AVL6882_WR_REG32(priv,0x200 + rc_fw_command_args_addr_iaddr_offset, dest_addr);
-//				ret = avl6882_exec_n_wait(priv,AVL_FW_CMD_DMA);
-//				idx += length * 3;
-//				num_rvs = patch[idx++];
-//				break;
-//			case PATCH_CMD_DECOMPRESS:
-//				type = patch[idx++];
-//				src_addr = patch[idx++];
-//				dest_addr = patch[idx++];
-//				if(type == PATCH_CMP_TYPE_ZLIB) {
-//					ref_addr = patch[idx++];
-//					ref_size = patch[idx++];
-//				}
-//				AVL6882_WR_REG32(priv,0x200 + rc_fw_command_args_addr_iaddr_offset, args_addr);
-//				AVL6882_WR_REG32(priv,args_addr+0, type);
-//				AVL6882_WR_REG32(priv,args_addr+4, src_addr);
-//				AVL6882_WR_REG32(priv,args_addr+8, dest_addr);
-//				if(type == PATCH_CMP_TYPE_ZLIB) {
-//					AVL6882_WR_REG32(priv,args_addr+12, ref_addr);
-//					AVL6882_WR_REG32(priv,args_addr+16, ref_size);
-//				}
-//				ret = avl6882_exec_n_wait(priv,AVL_FW_CMD_DECOMPRESS);
-//				num_rvs = patch[idx++];
-//				break;
-//			case PATCH_CMD_ASSERT_CPU_RESET:
-//				ret |= AVL6882_WR_REG32(priv,0x110840, 1);
-//				num_rvs = patch[idx++];
-//				break;
-//			case PATCH_CMD_RELEASE_CPU_RESET:
-//				AVL6882_WR_REG32(priv, 0x110840, 0);
-//				num_rvs = patch[idx++];
-//				break;
-//			case PATCH_CMD_DMA_HW:
-//				dest_addr = patch[idx++];
-//				length = patch[idx++];
-//				if (length > 0)
-//					ret = avl6882_i2c_wr_data(priv, dest_addr, &patch[idx], length * 3);
-//				i = 0;
-//				do {
-//					if (i++ > DMA_MAX_TRIES)
-//						return -ENODEV;
-//					ret |= AVL6882_RD_REG32(priv, 0x110048, &data);
-//				} while (!(0x01 & data));
+		if (condition) {
+			cmd = patch[idx++];
+			switch(cmd) {
+			case PATCH_CMD_PING:
+				ret = avl6882_exec_n_wait(priv, AVL_FW_CMD_PING);
+				num_rvs = patch[idx++];
+				i = patch[idx];
+				variable_array[i] = (ret == 0);
+				break;
+			case PATCH_CMD_VALIDATE_CRC:
+				exp_crc_val = patch[idx++];
+				src_addr = patch[idx++];
+				length = patch[idx++];
+				AVL6882_WR_REG32(priv,0x200 + rc_fw_command_args_addr_iaddr_offset, args_addr);
+				AVL6882_WR_REG32(priv,args_addr+0, src_addr);
+				AVL6882_WR_REG32(priv,args_addr+4, length);
+				ret = avl6882_exec_n_wait(priv, AVL_FW_CMD_CALC_CRC);
+				AVL6882_RD_REG32(priv,args_addr+8, &crc_result);
+				num_rvs = patch[idx++];
+				i = patch[idx];
+				variable_array[i] = (crc_result == exp_crc_val);
+				break;
+			case PATCH_CMD_LD_TO_DEVICE:
+				length = patch[idx++];
+				dest_addr = patch[idx++];
+				data_offset = patch[idx++];
+				data_offset += data_section_offset;
+				ret = avl6882_i2c_wr_data(priv, dest_addr, &patch[data_offset], length);
+				num_rvs = patch[idx++];
+				break;
+			case PATCH_CMD_LD_TO_DEVICE_IMM:
+				length = patch[idx++];
+				dest_addr = patch[idx++];
+				data = patch[idx++];
+				ret = avl6882_i2c_wr_reg(priv, dest_addr, data, length);
+				num_rvs = patch[idx++];
+				break;
+			case PATCH_CMD_RD_FROM_DEVICE:
+				length = patch[idx++];
+				src_addr = patch[idx++];
+				num_rvs = patch[idx++];
+				ret = avl6882_i2c_rd_reg(priv, src_addr, &data, length);
+				i = patch[idx];
+				variable_array[i] = data;
+				break;
+			case PATCH_CMD_DMA:
+				dest_addr = patch[idx++];
+				length = patch[idx++];
+				if (length > 0)
+					ret = avl6882_i2c_wr_data(priv, dest_addr, &patch[idx], length * 3);
+				AVL6882_WR_REG32(priv,0x200 + rc_fw_command_args_addr_iaddr_offset, dest_addr);
+				ret = avl6882_exec_n_wait(priv,AVL_FW_CMD_DMA);
+				idx += length * 3;
+				num_rvs = patch[idx++];
+				break;
+			case PATCH_CMD_DECOMPRESS:
+				type = patch[idx++];
+				src_addr = patch[idx++];
+				dest_addr = patch[idx++];
+				if(type == PATCH_CMP_TYPE_ZLIB) {
+					ref_addr = patch[idx++];
+					ref_size = patch[idx++];
+				}
+				AVL6882_WR_REG32(priv,0x200 + rc_fw_command_args_addr_iaddr_offset, args_addr);
+				AVL6882_WR_REG32(priv,args_addr+0, type);
+				AVL6882_WR_REG32(priv,args_addr+4, src_addr);
+				AVL6882_WR_REG32(priv,args_addr+8, dest_addr);
+				if(type == PATCH_CMP_TYPE_ZLIB) {
+					AVL6882_WR_REG32(priv,args_addr+12, ref_addr);
+					AVL6882_WR_REG32(priv,args_addr+16, ref_size);
+				}
+				ret = avl6882_exec_n_wait(priv,AVL_FW_CMD_DECOMPRESS);
+				num_rvs = patch[idx++];
+				break;
+			case PATCH_CMD_ASSERT_CPU_RESET:
+				ret |= AVL6882_WR_REG32(priv,0x110840, 1);
+				num_rvs = patch[idx++];
+				break;
+			case PATCH_CMD_RELEASE_CPU_RESET:
+				AVL6882_WR_REG32(priv, 0x110840, 0);
+				num_rvs = patch[idx++];
+				break;
+			case PATCH_CMD_DMA_HW:
+				dest_addr = patch[idx++];
+				length = patch[idx++];
+				if (length > 0)
+					ret = avl6882_i2c_wr_data(priv, dest_addr, &patch[idx], length * 3);
+				i = 0;
+				do {
+					if (i++ > DMA_MAX_TRIES)
+						return -ENODEV;
+					ret |= AVL6882_RD_REG32(priv, 0x110048, &data);
+				} while (!(0x01 & data));
 
-//				if (data)
-//					ret |= AVL6882_WR_REG32(priv, 0x110050, dest_addr);
-//				idx += length * 3;
-//				num_rvs = patch[idx++];
-//				break;
-//			case PATCH_CMD_SET_COND_IMM:
-//				data = patch[idx++];
-//				num_rvs = patch[idx++];
-//				i = patch[idx];
-//				variable_array[i] = data;
-//				break;
-//			default:
-//				return -ENODEV;
-//				break;
-//			}
-//			idx += num_rvs;
-//		} else {
-//			idx = next_cmd_idx;
-//			continue;
-//		}
-//	}
+				if (data)
+					ret |= AVL6882_WR_REG32(priv, 0x110050, dest_addr);
+				idx += length * 3;
+				num_rvs = patch[idx++];
+				break;
+			case PATCH_CMD_SET_COND_IMM:
+				data = patch[idx++];
+				num_rvs = patch[idx++];
+				i = patch[idx];
+				variable_array[i] = data;
+				break;
+			default:
+				return -ENODEV;
+				break;
+			}
+			idx += num_rvs;
+		} else {
+			idx = next_cmd_idx;
+			continue;
+		}
+	}
 
-//	return ret;
-//}
+	return ret;
+}
 
 #define DEMOD_WAIT_RETRIES_BOOT	(100)
 #define DEMOD_WAIT_MS_BOOT	(20)
-//static int avl6882_wait_demod_boot(struct avl6882_priv *priv)
-//{
-//	int ret, retry = DEMOD_WAIT_RETRIES_BOOT;
-//	u32 ready_code = 0;
-//	u32 status = 0;
+static int avl6882_wait_demod_boot(struct avl6882_priv *priv)
+{
+	int ret, retry = DEMOD_WAIT_RETRIES_BOOT;
+	u32 ready_code = 0;
+	u32 status = 0;
 
-//	do {
-//		ret = AVL6882_RD_REG32(priv, 0x110840, &status);
-//		ret |= AVL6882_RD_REG32(priv, rs_core_ready_word_iaddr_offset, &ready_code);
-//		if ((ret == 0) && (status == 0) && (ready_code == 0x5aa57ff7))
-//			return ret;
-//		else
-//			msleep(DEMOD_WAIT_MS_BOOT);
-//	} while (--retry);
-//	ret = -EBUSY;
-//	return ret;
-//}
+	do {
+		ret = AVL6882_RD_REG32(priv, 0x110840, &status);
+		ret |= AVL6882_RD_REG32(priv, rs_core_ready_word_iaddr_offset, &ready_code);
+		if ((ret == 0) && (status == 0) && (ready_code == 0x5aa57ff7))
+			return ret;
+		else
+			msleep(DEMOD_WAIT_MS_BOOT);
+	} while (--retry);
+	ret = -EBUSY;
+	return ret;
+}
 
 
 /* firmware loader */
-//static int avl6882_load_firmware(struct avl6882_priv *priv)
-//{
-//	struct avl6882_fw *fw;
-//	int ret = 0;
+static int avl6882_load_firmware(struct avl6882_priv *priv)
+{
+	struct avl6882_fw *fw;
+	int ret = 0;
 
-//	switch (priv->delivery_system) {
-//	case SYS_DVBC_ANNEX_A:
-//		fw = &priv->fw[AVL6882_FW_DVBC];
-//		break;
-//	case SYS_DVBS:
-//	case SYS_DVBS2:
-//		fw = &priv->fw[AVL6882_FW_DVBS];
-//		break;
-//	case SYS_DVBT:
-//	case SYS_DVBT2:
-//	default:
-//		fw = &priv->fw[AVL6882_FW_DVBT];
-//		break;
-//	}
+	switch (priv->delivery_system) {
+	case SYS_DVBC_ANNEX_A:
+		fw = &priv->fw[AVL6882_FW_DVBC];
+		break;
+	case SYS_DVBS:
+	case SYS_DVBS2:
+		fw = &priv->fw[AVL6882_FW_DVBS];
+		break;
+	case SYS_DVBT:
+	case SYS_DVBT2:
+	default:
+		fw = &priv->fw[AVL6882_FW_DVBT];
+		break;
+	}
 
-//	ret |= AVL6882_WR_REG32(priv, 0x110010, 1);
-//	ret |= avl6882_setup_pll(priv);
-//	if (ret)
-//		goto err;
-//	ret |= AVL6882_WR_REG32(priv, 0x0a4 + rs_core_ready_word_iaddr_offset, 0x00000000);
-//	ret |= AVL6882_WR_REG32(priv, 0x110010, 0);
+	ret |= AVL6882_WR_REG32(priv, 0x110010, 1);
+	ret |= avl6882_setup_pll(priv);
+	if (ret)
+		goto err;
+	ret |= AVL6882_WR_REG32(priv, 0x0a4 + rs_core_ready_word_iaddr_offset, 0x00000000);
+	ret |= AVL6882_WR_REG32(priv, 0x110010, 0);
 
-//	/* check patch version - only v1 supported */
-//	if ((fw->data[0] & 0xff) != 1)
-//		return -EINVAL;
+	/* check patch version - only v1 supported */
+	if ((fw->data[0] & 0xff) != 1)
+		return -EINVAL;
 
-//	ret |= avl6882_patch_demod(priv, fw->data);
-//	if (ret)
-//		return ret;
-//	ret = avl6882_wait_demod_boot(priv);
-//err:
-//	return ret;
-//}
+	ret |= avl6882_patch_demod(priv, fw->data);
+	if (ret)
+		return ret;
+	ret = avl6882_wait_demod_boot(priv);
+err:
+	return ret;
+}
 
 
 
@@ -615,148 +615,148 @@ int  ResetPER_Demod(  struct avl6882_priv *priv)
 	return r;
 }
 
-//static int InitErrorStat_Demod( struct avl6882_priv *priv )
-//{
-//	int r = AVL_EC_OK;
-//	AVL_ErrorStatConfig stErrorStatConfig;
+static int InitErrorStat_Demod( struct avl6882_priv *priv )
+{
+	int r = AVL_EC_OK;
+	AVL_ErrorStatConfig stErrorStatConfig;
 
-//	stErrorStatConfig.eErrorStatMode = AVL_ERROR_STAT_AUTO;
-//	stErrorStatConfig.eAutoErrorStatType = AVL_ERROR_STAT_TIME;
-//	stErrorStatConfig.uiTimeThresholdMs = 3000;
-//	stErrorStatConfig.uiNumberThresholdByte = 0;
+	stErrorStatConfig.eErrorStatMode = AVL_ERROR_STAT_AUTO;
+	stErrorStatConfig.eAutoErrorStatType = AVL_ERROR_STAT_TIME;
+	stErrorStatConfig.uiTimeThresholdMs = 3000;
+	stErrorStatConfig.uiNumberThresholdByte = 0;
 
-//	r = ErrorStatMode_Demod(priv,stErrorStatConfig);
-//	r |= ResetPER_Demod(priv);
+	r = ErrorStatMode_Demod(priv,stErrorStatConfig);
+	r |= ResetPER_Demod(priv);
 
-//	return r;
-//}
-
-
+	return r;
+}
 
 
 
-//static int avl6882_init_diseqc( struct avl6882_priv *priv,AVL_Diseqc_Para *pDiseqcPara)
-//{
-//	int r;
-//	u32 i1 = 0;
-
-//	r = AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_srst_offset, 1);
-
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_samp_frac_n_offset, 2000000); 	  //2M=200*10kHz
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_samp_frac_d_offset, 166666667);  //uiDDCFrequencyHz  166666667
-
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_tone_frac_n_offset, ((pDiseqcPara->uiToneFrequencyKHz)<<1));
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_tone_frac_d_offset, (166666667/1000));//uiDDCFrequencyHz  166666667
-
-//	// Initialize the tx_control
-//	r |= AVL6882_RD_REG32(priv,0x16c000 + hw_diseqc_tx_cntrl_offset, &i1);
-//	i1 &= 0x00000300;
-//	i1 |= 0x20; 	//reset tx_fifo
-//	i1 |= ((u32)(pDiseqcPara->eTXGap) << 6);
-//	i1 |= ((u32)(pDiseqcPara->eTxWaveForm) << 4);
-//	i1 |= (1<<3);			//enable tx gap.
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_tx_cntrl_offset, i1);
-//	i1 &= ~(0x20);	//release tx_fifo reset
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_tx_cntrl_offset, i1);
-
-//	// Initialize the rx_control
-//	i1 = ((u32)(pDiseqcPara->eRxWaveForm) << 2);
-//	i1 |= (1<<1);	//active the receiver
-//	i1 |= (1<<3);	//envelop high when tone present
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_rx_cntrl_offset, i1);
-//	i1 = (u32)(pDiseqcPara->eRxTimeout);
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_rx_msg_tim_offset, i1);
-
-//	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_srst_offset, 0);
-
-//	return r;
-//}
 
 
-//static int avl6882_init_dvbs(struct dvb_frontend *fe)
-//{
-//	struct avl6882_priv *priv = fe->demodulator_priv;
-//	int ret;
-//	AVL_Diseqc_Para stDiseqcConfig;
+static int avl6882_init_diseqc( struct avl6882_priv *priv,AVL_Diseqc_Para *pDiseqcPara)
+{
+	int r;
+	u32 i1 = 0;
 
-//	ret = AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_int_mpeg_clk_MHz_saddr_offset,27000);
-//	ret |= AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_int_fec_clk_MHz_saddr_offset,25000);
+	r = AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_srst_offset, 1);
 
-//	ret |= AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_int_adc_clk_MHz_saddr_offset,12500);// uiADCFrequencyHz  125000000
-//	ret |= AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_int_dmd_clk_MHz_saddr_offset,166666667/10000); //uiDDCFrequencyHz  166666667
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_samp_frac_n_offset, 2000000); 	  //2M=200*10kHz
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_samp_frac_d_offset, 166666667);  //uiDDCFrequencyHz  166666667
 
-//	ret |= AVL6882_WR_REG32(priv, 0xe00 + rc_DVBSx_rfagc_pol_iaddr_offset,AVL_AGC_INVERTED);
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_tone_frac_n_offset, ((pDiseqcPara->uiToneFrequencyKHz)<<1));
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_tone_frac_d_offset, (166666667/1000));//uiDDCFrequencyHz  166666667
 
-//	ret |= AVL6882_WR_REG32(priv, 0xe00 + rc_DVBSx_format_iaddr_offset, AVL_OFFBIN);//Offbin
-//	ret |= AVL6882_WR_REG32(priv, 0xe00 + rc_DVBSx_input_iaddr_offset, AVL_ADC_IN);//ADC in
+	// Initialize the tx_control
+	r |= AVL6882_RD_REG32(priv,0x16c000 + hw_diseqc_tx_cntrl_offset, &i1);
+	i1 &= 0x00000300;
+	i1 |= 0x20; 	//reset tx_fifo
+	i1 |= ((u32)(pDiseqcPara->eTXGap) << 6);
+	i1 |= ((u32)(pDiseqcPara->eTxWaveForm) << 4);
+	i1 |= (1<<3);			//enable tx gap.
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_tx_cntrl_offset, i1);
+	i1 &= ~(0x20);	//release tx_fifo reset
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_tx_cntrl_offset, i1);
 
-//	ret |= AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_IF_Offset_10kHz_saddr_offset,0);
+	// Initialize the rx_control
+	i1 = ((u32)(pDiseqcPara->eRxWaveForm) << 2);
+	i1 |= (1<<1);	//active the receiver
+	i1 |= (1<<3);	//envelop high when tone present
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_rx_cntrl_offset, i1);
+	i1 = (u32)(pDiseqcPara->eRxTimeout);
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_rx_msg_tim_offset, i1);
 
-//	/* enble agc */
-//	ret |= avl6882_gpio_set(priv, GPIO_AGC_DVBS, GPIO_AGC_ON);
+	r |= AVL6882_WR_REG32(priv,0x16c000 + hw_diseqc_srst_offset, 0);
 
-//	stDiseqcConfig.eRxTimeout = AVL_DRT_150ms;
-//	stDiseqcConfig.eRxWaveForm = AVL_DWM_Normal;
-//	stDiseqcConfig.uiToneFrequencyKHz = 22;
-//	stDiseqcConfig.eTXGap = AVL_DTXG_15ms;
-//	stDiseqcConfig.eTxWaveForm = AVL_DWM_Normal;
-
-//	ret |= avl6882_init_diseqc(priv, &stDiseqcConfig);
-//	return ret;
-//}
-
-
-//static int avl6882_init_dvbc(struct dvb_frontend *fe)
-//{
-//	struct avl6882_priv *priv = fe->demodulator_priv;
-//	int ret;
-
-//	ret = AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_dmd_clk_Hz_iaddr_offset, 250000000);
-//	ret |= AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_fec_clk_Hz_iaddr_offset, 250000000);
-//	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_rfagc_pol_caddr_offset,AVL_AGC_NORMAL);
-//	ret |= AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_if_freq_Hz_iaddr_offset, 5000000);
-//	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_adc_sel_caddr_offset, (u8) AVL_IF_Q);
-//	ret |= AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_symbol_rate_Hz_iaddr_offset, 6875000);
-//	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_j83b_mode_caddr_offset, AVL_DVBC_J83A);
-
-//	//DDC configuration
-//	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_input_format_caddr_offset, AVL_ADC_IN); //ADC in
-//	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_input_select_caddr_offset, AVL_OFFBIN); //RX_OFFBIN
-//	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_tuner_type_caddr_offset, AVL_DVBC_IF); //IF
-
-//	//ADC configuration
-//	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_adc_use_pll_clk_caddr_offset, 0);
-//	ret |= AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_sample_rate_Hz_iaddr_offset, 30000000);
-
-//	/* enable agc */
-//    	ret |= avl6882_gpio_set(priv, GPIO_AGC_DVBTC, GPIO_AGC_ON);
-//	return ret;
-//}
+	return r;
+}
 
 
-//static int avl6882_init_dvbt(struct dvb_frontend *fe)
-//{
-//	struct avl6882_priv *priv = fe->demodulator_priv;
-//	int ret;
+static int avl6882_init_dvbs(struct dvb_frontend *fe)
+{
+	struct avl6882_priv *priv = fe->demodulator_priv;
+	int ret;
+	AVL_Diseqc_Para stDiseqcConfig;
 
-//	ret = AVL6882_WR_REG32(priv, 0xa00 + rc_DVBTx_sample_rate_Hz_iaddr_offset, 30000000);
-//	ret |= AVL6882_WR_REG32(priv, 0xa00 + rc_DVBTx_mpeg_clk_rate_Hz_iaddr_offset, 270000000);
+	ret = AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_int_mpeg_clk_MHz_saddr_offset,27000);
+	ret |= AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_int_fec_clk_MHz_saddr_offset,25000);
 
-//	/* DDC configuration */
-//	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_input_format_caddr_offset, AVL_OFFBIN);
-//	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_input_select_caddr_offset, AVL_ADC_IN);
-//	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_tuner_type_caddr_offset, AVL_DVBTX_REAL_IF);
-//	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_rf_agc_pol_caddr_offset, 0);
-//	ret |= AVL6882_WR_REG32(priv, 0xa00 + rc_DVBTx_nom_carrier_freq_Hz_iaddr_offset, 5000000);
+	ret |= AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_int_adc_clk_MHz_saddr_offset,12500);// uiADCFrequencyHz  125000000
+	ret |= AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_int_dmd_clk_MHz_saddr_offset,166666667/10000); //uiDDCFrequencyHz  166666667
 
-//	/* ADC configuration */
-//	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_adc_sel_caddr_offset, (u8)AVL_IF_Q);
-//	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_adc_use_pll_clk_caddr_offset, 0);
+	ret |= AVL6882_WR_REG32(priv, 0xe00 + rc_DVBSx_rfagc_pol_iaddr_offset,AVL_AGC_INVERTED);
 
-//	/* enable agc */
-//    	ret |= avl6882_gpio_set(priv, GPIO_AGC_DVBTC, GPIO_AGC_ON);
-//	return ret;
-//}
+	ret |= AVL6882_WR_REG32(priv, 0xe00 + rc_DVBSx_format_iaddr_offset, AVL_OFFBIN);//Offbin
+	ret |= AVL6882_WR_REG32(priv, 0xe00 + rc_DVBSx_input_iaddr_offset, AVL_ADC_IN);//ADC in
+
+	ret |= AVL6882_WR_REG16(priv, 0xe00 + rc_DVBSx_IF_Offset_10kHz_saddr_offset,0);
+
+	/* enble agc */
+	ret |= avl6882_gpio_set(priv, GPIO_AGC_DVBS, GPIO_AGC_ON);
+
+	stDiseqcConfig.eRxTimeout = AVL_DRT_150ms;
+	stDiseqcConfig.eRxWaveForm = AVL_DWM_Normal;
+	stDiseqcConfig.uiToneFrequencyKHz = 22;
+	stDiseqcConfig.eTXGap = AVL_DTXG_15ms;
+	stDiseqcConfig.eTxWaveForm = AVL_DWM_Normal;
+
+	ret |= avl6882_init_diseqc(priv, &stDiseqcConfig);
+	return ret;
+}
+
+
+static int avl6882_init_dvbc(struct dvb_frontend *fe)
+{
+	struct avl6882_priv *priv = fe->demodulator_priv;
+	int ret;
+
+	ret = AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_dmd_clk_Hz_iaddr_offset, 250000000);
+	ret |= AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_fec_clk_Hz_iaddr_offset, 250000000);
+	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_rfagc_pol_caddr_offset,AVL_AGC_NORMAL);
+	ret |= AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_if_freq_Hz_iaddr_offset, 5000000);
+	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_adc_sel_caddr_offset, (u8) AVL_IF_Q);
+	ret |= AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_symbol_rate_Hz_iaddr_offset, 6875000);
+	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_j83b_mode_caddr_offset, AVL_DVBC_J83A);
+
+	//DDC configuration
+	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_input_format_caddr_offset, AVL_ADC_IN); //ADC in
+	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_input_select_caddr_offset, AVL_OFFBIN); //RX_OFFBIN
+	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_tuner_type_caddr_offset, AVL_DVBC_IF); //IF
+
+	//ADC configuration
+	ret |= AVL6882_WR_REG8(priv, 0x600 + rc_DVBC_adc_use_pll_clk_caddr_offset, 0);
+	ret |= AVL6882_WR_REG32(priv, 0x600 + rc_DVBC_sample_rate_Hz_iaddr_offset, 30000000);
+
+	/* enable agc */
+    	ret |= avl6882_gpio_set(priv, GPIO_AGC_DVBTC, GPIO_AGC_ON);
+	return ret;
+}
+
+
+static int avl6882_init_dvbt(struct dvb_frontend *fe)
+{
+	struct avl6882_priv *priv = fe->demodulator_priv;
+	int ret;
+
+	ret = AVL6882_WR_REG32(priv, 0xa00 + rc_DVBTx_sample_rate_Hz_iaddr_offset, 30000000);
+	ret |= AVL6882_WR_REG32(priv, 0xa00 + rc_DVBTx_mpeg_clk_rate_Hz_iaddr_offset, 270000000);
+
+	/* DDC configuration */
+	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_input_format_caddr_offset, AVL_OFFBIN);
+	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_input_select_caddr_offset, AVL_ADC_IN);
+	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_tuner_type_caddr_offset, AVL_DVBTX_REAL_IF);
+	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_rf_agc_pol_caddr_offset, 0);
+	ret |= AVL6882_WR_REG32(priv, 0xa00 + rc_DVBTx_nom_carrier_freq_Hz_iaddr_offset, 5000000);
+
+	/* ADC configuration */
+	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_adc_sel_caddr_offset, (u8)AVL_IF_Q);
+	ret |= AVL6882_WR_REG8(priv, 0xa00 + rc_DVBTx_adc_use_pll_clk_caddr_offset, 0);
+
+	/* enable agc */
+    	ret |= avl6882_gpio_set(priv, GPIO_AGC_DVBTC, GPIO_AGC_ON);
+	return ret;
+}
 
 
 static int avl6882_read_status(struct dvb_frontend *fe, enum fe_status *status)
@@ -1065,100 +1065,100 @@ static int avl6882_init(struct dvb_frontend *fe)
 
 #define I2C_RPT_DIV ((0x2A)*(250000)/(240*1000))	//m_CoreFrequency_Hz 250000000
 
-//static int avl6882_set_dvbmode(struct dvb_frontend *fe,
-//		enum fe_delivery_system delsys)
-//{
-//	struct avl6882_priv *priv = fe->demodulator_priv;
-//	int ret;
-//	u32 reg;
+static int avl6882_set_dvbmode(struct dvb_frontend *fe,
+		enum fe_delivery_system delsys)
+{
+	struct avl6882_priv *priv = fe->demodulator_priv;
+	int ret;
+	u32 reg;
 
-//	/* these modes use the same fw / config */
-//	if (delsys == SYS_DVBS2)
-//		delsys = SYS_DVBS;
-//	else if (delsys == SYS_DVBT2)
-//		delsys = SYS_DVBT;
+	/* these modes use the same fw / config */
+	if (delsys == SYS_DVBS2)
+		delsys = SYS_DVBS;
+	else if (delsys == SYS_DVBT2)
+		delsys = SYS_DVBT;
 
-//	/* already in the requested mode */
-//	if (priv->delivery_system == delsys)
-//		return 0;
+	/* already in the requested mode */
+	if (priv->delivery_system == delsys)
+		return 0;
 
-//	priv->delivery_system = delsys;
-//	//printk("initing demod for delsys=%d\n", delsys);
+	priv->delivery_system = delsys;
+	//printk("initing demod for delsys=%d\n", delsys);
 
-//	ret = avl6882_load_firmware(priv);
+	ret = avl6882_load_firmware(priv);
 
-//	// Load the default configuration
-//	ret |= avl6882_exec_n_wait(priv, AVL_FW_CMD_LD_DEFAULT);
-//	ret |= avl6882_exec_n_wait(priv, AVL_FW_CMD_INIT_SDRAM);
-//	ret |= avl6882_exec_n_wait(priv, AVL_FW_CMD_INIT_ADC);
+	// Load the default configuration
+	ret |= avl6882_exec_n_wait(priv, AVL_FW_CMD_LD_DEFAULT);
+	ret |= avl6882_exec_n_wait(priv, AVL_FW_CMD_INIT_SDRAM);
+	ret |= avl6882_exec_n_wait(priv, AVL_FW_CMD_INIT_ADC);
 
-//	switch (priv->delivery_system) {
-//	case SYS_DVBC_ANNEX_A:
-//		ret |= avl6882_init_dvbc(fe);
-//		break;
-//	case SYS_DVBS:
-//	case SYS_DVBS2:
-//		ret |= avl6882_init_dvbs(fe);
-//		break;
-//	case SYS_DVBT:
-//	case SYS_DVBT2:
-//	default:
-//		ret |= avl6882_init_dvbt(fe);
-//		break;
-//	}
+	switch (priv->delivery_system) {
+	case SYS_DVBC_ANNEX_A:
+		ret |= avl6882_init_dvbc(fe);
+		break;
+	case SYS_DVBS:
+	case SYS_DVBS2:
+		ret |= avl6882_init_dvbs(fe);
+		break;
+	case SYS_DVBT:
+	case SYS_DVBT2:
+	default:
+		ret |= avl6882_init_dvbt(fe);
+		break;
+	}
 
-//	/* set gpio / turn off lnb, set 13V */
-//    	ret  = avl6882_gpio_set(priv, GPIO_LNB_PWR, GPIO_1);
-//    	ret |= avl6882_gpio_set(priv, GPIO_LNB_VOLT, GPIO_0);
+	/* set gpio / turn off lnb, set 13V */
+    	ret  = avl6882_gpio_set(priv, GPIO_LNB_PWR, GPIO_1);
+    	ret |= avl6882_gpio_set(priv, GPIO_LNB_VOLT, GPIO_0);
 
-//	/* set TS mode */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_serial_caddr_offset, AVL_TS_PARALLEL);
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_clock_edge_caddr_offset, AVL_MPCM_RISING);
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_enable_ts_continuous_caddr_offset, AVL_TS_CONTINUOUS_ENABLE);
+	/* set TS mode */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_serial_caddr_offset, AVL_TS_PARALLEL);
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_clock_edge_caddr_offset, AVL_MPCM_RISING);
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_enable_ts_continuous_caddr_offset, AVL_TS_CONTINUOUS_ENABLE);
 
-//	/* TS serial pin */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_serial_outpin_caddr_offset, AVL_MPSP_DATA0);
-//	/* TS serial order */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_serial_msb_caddr_offset, AVL_MPBO_MSB);
-//	/* TS serial sync pulse */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_sync_pulse_caddr_offset, AVL_TS_SERIAL_SYNC_1_PULSE);
-//	/* TS error pol */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_error_polarity_caddr_offset, AVL_MPEP_Normal);
-//	/* TS valid pol */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_valid_polarity_caddr_offset, AVL_MPVP_Normal);
-//	/* TS packet len */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_packet_len_caddr_offset, AVL_TS_188);
-//	/* TS parallel order */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_packet_order_caddr_offset, AVL_TS_PARALLEL_ORDER_NORMAL);
-//	/* TS parallel phase */
-//	ret |= AVL6882_WR_REG8(priv, 0x200 + ts_clock_phase_caddr_offset, AVL_TS_PARALLEL_PHASE_0);
+	/* TS serial pin */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_serial_outpin_caddr_offset, AVL_MPSP_DATA0);
+	/* TS serial order */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_serial_msb_caddr_offset, AVL_MPBO_MSB);
+	/* TS serial sync pulse */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_sync_pulse_caddr_offset, AVL_TS_SERIAL_SYNC_1_PULSE);
+	/* TS error pol */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_error_polarity_caddr_offset, AVL_MPEP_Normal);
+	/* TS valid pol */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_valid_polarity_caddr_offset, AVL_MPVP_Normal);
+	/* TS packet len */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_packet_len_caddr_offset, AVL_TS_188);
+	/* TS parallel order */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + rc_ts_packet_order_caddr_offset, AVL_TS_PARALLEL_ORDER_NORMAL);
+	/* TS parallel phase */
+	ret |= AVL6882_WR_REG8(priv, 0x200 + ts_clock_phase_caddr_offset, AVL_TS_PARALLEL_PHASE_0);
 
-//	/* TS output enable */
-//	ret |= AVL6882_WR_REG32(priv, AVLREG_TS_OUTPUT, TS_OUTPUT_ENABLE);
+	/* TS output enable */
+	ret |= AVL6882_WR_REG32(priv, AVLREG_TS_OUTPUT, TS_OUTPUT_ENABLE);
 
-//	/* init tuner i2c repeater */
-//	/* hold in reset */
-//	ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_srst_offset, 1);
-//	/* close gate */
-//	ret |= avl6882_i2c_gate_ctrl(fe, 0);
-//	//ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_bit_rpt_cntrl_offset, 0x6);
-//	ret |= AVL6882_RD_REG32(priv, 0x118000 + tuner_i2c_cntrl_offset, &reg);
-//	reg &= 0xfffffffe;
-//	ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_cntrl_offset, reg);
-//	/* set bit clock */
-//	ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_bit_rpt_clk_div_offset, I2C_RPT_DIV);
-//	/* release from reset */
-//	ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_srst_offset, 0);
+	/* init tuner i2c repeater */
+	/* hold in reset */
+	ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_srst_offset, 1);
+	/* close gate */
+	ret |= avl6882_i2c_gate_ctrl(fe, 0);
+	//ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_bit_rpt_cntrl_offset, 0x6);
+	ret |= AVL6882_RD_REG32(priv, 0x118000 + tuner_i2c_cntrl_offset, &reg);
+	reg &= 0xfffffffe;
+	ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_cntrl_offset, reg);
+	/* set bit clock */
+	ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_bit_rpt_clk_div_offset, I2C_RPT_DIV);
+	/* release from reset */
+	ret |= AVL6882_WR_REG32(priv, 0x118000 + tuner_i2c_srst_offset, 0);
 
-//	ret |= InitErrorStat_Demod(priv);
+	ret |= InitErrorStat_Demod(priv);
 
-//	if (ret) {
-//		dev_err(&priv->i2c->dev, "%s: demod init failed",
-//				KBUILD_MODNAME);
-//	}
+	if (ret) {
+		dev_err(&priv->i2c->dev, "%s: demod init failed",
+				KBUILD_MODNAME);
+	}
 
-//	return ret;
-//}
+	return ret;
+}
 
 static int avl6882_sleep(struct dvb_frontend *fe)
 {
@@ -1243,9 +1243,17 @@ static int avl6882_set_frontend(struct dvb_frontend *fe)
 	}
 	//printk("%s() demod_mode=%d\n", __func__, demod_mode);
 
+	ret = avl6882_set_dvbmode(fe, c->delivery_system);
+	if (ret) {
+		printk("error set_dvbmode\n");
+	}
+
 	switch (c->delivery_system) {
 	case SYS_DVBT:
 	case SYS_DVBT2:
+		fe->ops.info.frequency_min_hz = 174 * MHz;
+		fe->ops.info.frequency_max_hz = 862 * MHz;
+		fe->ops.info.frequency_stepsize_hz = 250000;
 		if (demod_mode != AVL_DVBTX) {
 			dev_err(&priv->i2c->dev, "%s: failed to enter DVBTx mode",
 				KBUILD_MODNAME);
@@ -1255,6 +1263,9 @@ static int avl6882_set_frontend(struct dvb_frontend *fe)
 		ret = avl6882_set_dvbt(fe);
 		break;
 	case SYS_DVBC_ANNEX_A:
+		fe->ops.info.frequency_min_hz = 47 * MHz;
+		fe->ops.info.frequency_max_hz = 862 * MHz;
+		fe->ops.info.frequency_stepsize_hz = 62500;
 		if (demod_mode != AVL_DVBC) {
 			dev_err(&priv->i2c->dev, "%s: failed to enter DVBC mode",
 				KBUILD_MODNAME);
@@ -1265,6 +1276,9 @@ static int avl6882_set_frontend(struct dvb_frontend *fe)
 		break;
 	case SYS_DVBS:
 	case SYS_DVBS2:
+		fe->ops.info.frequency_min_hz = 950 * MHz;
+		fe->ops.info.frequency_max_hz = 2150 * MHz;
+		fe->ops.info.frequency_stepsize_hz = 0;
 		if (demod_mode != AVL_DVBSX) {
 			dev_err(&priv->i2c->dev, "%s: failed to enter DVBSx mode",
 				KBUILD_MODNAME);
@@ -1299,83 +1313,55 @@ static int avl6882_get_frontend(struct dvb_frontend *fe,
 	return 0;
 }
 
-//static int avl6882_set_property(struct dvb_frontend *fe,
-//		struct dtv_property *p)
-//{
-//	int ret = 0;
+static int avl6882_set_property(struct dvb_frontend *fe,
+		u32 cmd, u32 data)
+{
+	int ret = 0;
 
-//	switch (p->cmd) {
-//	case DTV_DELIVERY_SYSTEM:
-//		//printk("DTV_set_prop delsys %d\n", p->u.data);
-//		ret = avl6882_set_dvbmode(fe, p->u.data);
-//		if (ret) {
-//			printk("error set_dvbmode\n");
-//		}
-//		switch (p->u.data) {
-//		case SYS_DVBC_ANNEX_A:
-//			fe->ops.info.frequency_min = 47000000;
-//			fe->ops.info.frequency_max = 862000000;
-//			fe->ops.info.frequency_stepsize = 62500;
-//			break;
-//		case SYS_DVBS:
-//		case SYS_DVBS2:
-//			fe->ops.info.frequency_min = 950000;
-//			fe->ops.info.frequency_max = 2150000;
-//			fe->ops.info.frequency_stepsize = 0;
-//			break;
-//		case SYS_DVBT:
-//		case SYS_DVBT2:
-//		default:
-//			fe->ops.info.frequency_min = 174000000;
-//			fe->ops.info.frequency_max = 862000000;
-//			fe->ops.info.frequency_stepsize = 250000;
-//			break;
-//		}
+	switch (cmd) {
+	case DTV_DELIVERY_SYSTEM:
+		//printk("DTV_set_prop delsys %d\n", data);
+		ret = avl6882_set_dvbmode(fe, data);
+		if (ret) {
+			printk("error set_dvbmode\n");
+		}
+		switch (data) {
+		case SYS_DVBC_ANNEX_A:
+			fe->ops.info.frequency_min_hz = 47 * MHz;
+			fe->ops.info.frequency_max_hz = 862 * MHz;
+			fe->ops.info.frequency_stepsize_hz = 62500;
+			break;
+		case SYS_DVBS:
+		case SYS_DVBS2:
+			fe->ops.info.frequency_min_hz = 950 * MHz;
+			fe->ops.info.frequency_max_hz = 2150 * MHz;
+			fe->ops.info.frequency_stepsize_hz = 0;
+			break;
+		case SYS_DVBT:
+		case SYS_DVBT2:
+		default:
+			fe->ops.info.frequency_min_hz = 174 * MHz;
+			fe->ops.info.frequency_max_hz = 862 * MHz;
+			fe->ops.info.frequency_stepsize_hz = 250000;
+			break;
+		}
 
-//		break;
-//	default:
-//		break;
-//	}
+		break;
+	default:
+		break;
+	}
 
-//	return ret;
-//}
-
-//static int avl6882_get_property(struct dvb_frontend *fe,
-//		struct dtv_property *p)
-//{
-//	int ret = 0;
-//	u16 tmp;
-//	u32 tmp2;
-
-//	switch (p->cmd) {
-//	case DTV_STAT_CNR:
-//		ret |= avl6882fe_snr(fe, &tmp);
-//		p->u.st.stat[0].scale = FE_SCALE_DECIBEL;
-//		p->u.st.stat[0].svalue = tmp;
-
-//		if (tmp > 25000)
-//			tmp2 = 0xffff;
-//		else
-//			tmp2 = (tmp * 0xffff) / 25000;
-//		p->u.st.stat[1].scale = FE_SCALE_RELATIVE;
-//		p->u.st.stat[1].svalue = (u16) tmp2;
-//		p->u.st.len = 2;
-//		break;
-//	default:
-//		break;
-//	}
-
-//	return ret;
-//}
+	return ret;
+}
 
 static struct dvb_frontend_ops avl6882_ops = {
 	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A, SYS_DVBS, SYS_DVBS2},
 	.info = {
 		.name			= "Availink AVL6882",
-		.frequency_min		= 0,
-		.frequency_max		= 0,
-		.frequency_stepsize	= 0,
-		.frequency_tolerance	= 0,
+		.frequency_min_hz	= 0,
+		.frequency_max_hz	= 0,
+		.frequency_stepsize_hz	= 0,
+		.frequency_tolerance_hz	= 0,
 		.symbol_rate_min	= 1000000,
 		.symbol_rate_max	= 45000000,
 		.caps = FE_CAN_FEC_1_2                 |
@@ -1420,8 +1406,6 @@ static struct dvb_frontend_ops avl6882_ops = {
 	.get_frontend_algo		= avl6882fe_algo,
 	.tune				= avl6882_tune,
 
-//	.set_property			= avl6882_set_property,
-//	.get_property			= avl6882_get_property,
 	.set_frontend			= avl6882_set_frontend,
 	.get_frontend = avl6882_get_frontend,
 };

@@ -415,16 +415,17 @@ static int si2157_get_rf_strength(struct dvb_frontend *fe,
 static const struct dvb_tuner_ops si2157_ops = {
 	.info = {
 		.name           = "Silicon Labs Si2141/Si2146/2147/2148/2157/2158",
-		.frequency_min  = 42000000,
-		.frequency_max  = 870000000,
+		.frequency_min_hz =  42 * MHz,
+		.frequency_max_hz = 870 * MHz,
 	},
 
-	.init			= si2157_init,
-	.sleep			= si2157_sleep,
-	.set_params		= si2157_set_params,
-	.get_if_frequency	= si2157_get_if_frequency,
+	.init = si2157_init,
+	.sleep = si2157_sleep,
+	.set_params = si2157_set_params,
+	.get_if_frequency = si2157_get_if_frequency,
 	.get_rf_strength	= si2157_get_rf_strength,
 };
+
 
 static int si2157_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)

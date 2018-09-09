@@ -208,19 +208,10 @@ static int bcm2835_smi_nand_probe(struct platform_device *pdev)
 	this->IO_ADDR_R = (void *)0xdeadbeef;
 	this->IO_ADDR_W = (void *)0xdeadbeef;
 
-	/* First scan to find the device and get the page size */
+	/* Scan to find the device and get the page size */
 
-	if (nand_scan_ident(mtd, 1, NULL))
+	if (nand_scan(mtd, 1))
 		return -ENXIO;
-
-	/* Second phase scan */
-
-	if (nand_scan_tail(mtd))
-		return -ENXIO;
-
-	ret = mtd_device_parse_register(mtd, NULL, &ppdata, NULL, 0);
-	if (!ret)
-		return 0;
 
 	nand_release(mtd);
 	return -EINVAL;
