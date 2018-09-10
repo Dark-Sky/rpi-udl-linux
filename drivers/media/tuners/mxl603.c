@@ -488,8 +488,8 @@ static int mxl603_get_status(struct dvb_frontend *fe,u32*status)
 static const struct dvb_tuner_ops mxl603_ops ={
 	.info = {
 		.name = "MaxLinear tuner MXL603",
-		.frequency_min_hz = 44000000,
-		.frequency_max_hz = 1002000000,
+		.frequency_min_hz =   44 * MHz,
+		.frequency_max_hz = 1002 * MHz,
 	},
 	.init = mxl603_init,
 	.set_params = mxl603_set_params,

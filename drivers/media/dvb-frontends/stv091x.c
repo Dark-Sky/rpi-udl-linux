@@ -789,9 +789,9 @@ static int stv091x_get_dmdlock(struct stv091x_state *state)
 		if (!lock)
 			msleep(100);
 		timer += 100;
-		fprintk("%s", lock ? "LOCKED" : "SEARCHING");
 	}
 
+	fprintk("%s", lock ? "LOCKED" : "NO LOCK");
 	return lock;
 }
 
@@ -1072,12 +1072,12 @@ static int stv091x_set_tone(struct dvb_frontend *fe, enum fe_sec_tone_mode tone)
 {
 	struct stv091x_state *state = fe->demodulator_priv;
 
-	fprintk("demod: %d tone:%s", state->nr, tone ? "OFF" : "ON");
-
 	switch (tone) {
 	case SEC_TONE_ON:
+		fprintk("ON");
 		return STV091X_WRITE_FIELD(state, DISEQC_MODE, 0);
 	case SEC_TONE_OFF:
+		fprintk("OFF");
 		return STV091X_WRITE_FIELD(state, DISEQC_MODE, 2);
 	default:
 		break;
@@ -1089,7 +1089,7 @@ static enum dvbfe_search stv091x_search(struct dvb_frontend *fe)
 {
 	struct stv091x_state *state = fe->demodulator_priv;
 
-//	fprintk("demod: %d", state->nr);
+	fprintk("demod: %d", state->nr);
 
 	state->algo = STV091X_BLIND_SEARCH;
 
@@ -1169,7 +1169,8 @@ static int stv091x_send_burst(struct dvb_frontend *fe, enum fe_sec_mini_cmd burs
 static int stv091x_sleep(struct dvb_frontend *fe)
 {
 	struct stv091x_state *state = fe->demodulator_priv;
-//	fprintk("demod: %d", state->nr);
+
+	fprintk("demod: %d", state->nr);
 
 	state->algo = STV091X_NOTUNE;
 	STV091X_WRITE_REG(state, DMDISTATE, 0x5C); /* Demod Stop */
@@ -1407,8 +1408,8 @@ static struct dvb_frontend_ops stv091x_ops = {
 	.delsys = { SYS_DSS, SYS_DVBS, SYS_DVBS2 },
 	.info = {
 		.name			= "STV091X",
-		.frequency_min_hz	= 25000000,
-		.frequency_max_hz	= 215000000,
+		.frequency_min_hz	=  250 * MHz,
+		.frequency_max_hz	= 2150 * MHz,
 		.frequency_stepsize_hz	= 0,
 		.frequency_tolerance_hz	= 0,
 		.symbol_rate_min	= 100000,

@@ -2692,18 +2692,22 @@ static int saa716x_tbs6983_set_voltage(struct dvb_frontend *fe, enum fe_sec_volt
 
 	switch (voltage) {
 	case SEC_VOLTAGE_13:
+		fprintk("13V");
 		saa716x_gpio_write(saa716x, adapter_gpio_0, 0);
 		saa716x_gpio_write(saa716x, adapter_gpio_1, 0);
 		break;
 	case SEC_VOLTAGE_18:
+		fprintk("18V");
 		saa716x_gpio_write(saa716x, adapter_gpio_0, 1);
 		saa716x_gpio_write(saa716x, adapter_gpio_1, 0);
 		break;
 	case SEC_VOLTAGE_OFF:
+		fprintk("OFF");
 		saa716x_gpio_write(saa716x, adapter_gpio_0, 1);
 		saa716x_gpio_write(saa716x, adapter_gpio_1, 1);
 		break;
 	default:
+		fprintk("Invalid");
 		return -EINVAL;
 	}
 

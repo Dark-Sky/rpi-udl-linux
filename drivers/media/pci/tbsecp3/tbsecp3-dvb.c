@@ -323,18 +323,19 @@ static int tbsecp3_set_voltage(struct dvb_frontend* fe, enum fe_sec_voltage volt
 	struct tbsecp3_gpio_config *cfg = &priv->adap->cfg->gpio;
 	struct tbsecp3_dev *dev = priv->adap->dev;
 
-	fprintk("%s", voltage == SEC_VOLTAGE_13 ? "SEC_VOLTAGE_13" : voltage == SEC_VOLTAGE_18 ? "SEC_VOLTAGE_18" : "SEC_VOLTAGE_OFF");
-
 	switch (voltage) {
 	case SEC_VOLTAGE_13:
+		fprintk("13V");
 		tbsecp3_gpio_set_pin(dev, &cfg->lnb_power, 1);
 		tbsecp3_gpio_set_pin(dev, &cfg->lnb_voltage, 0);
 		break;
 	case SEC_VOLTAGE_18:
+		fprintk("18V");
 		tbsecp3_gpio_set_pin(dev, &cfg->lnb_power, 1);
 		tbsecp3_gpio_set_pin(dev, &cfg->lnb_voltage, 1);
 		break;
 	default: /* OFF */
+		fprintk("OFF");
 		tbsecp3_gpio_set_pin(dev, &cfg->lnb_power, 0);
 		break;
 	}

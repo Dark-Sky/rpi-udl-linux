@@ -493,8 +493,8 @@ static int stv6120_set_params(struct dvb_frontend *fe)
 static struct dvb_tuner_ops stv6120_ops = {
 	.info = {
 		.name		= "STV6120 Silicon Tuner",
-		.frequency_min_hz	=  250000000,
-		.frequency_max_hz	= 2150000000,
+		.frequency_min_hz	=  250 * MHz,
+		.frequency_max_hz	= 2150 * MHz,
 		.frequency_step_hz	= 0,
 	},
 	.sleep          = stv6120_sleep,
