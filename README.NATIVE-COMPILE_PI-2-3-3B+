@@ -29,6 +29,17 @@ sudo ln -s /usr/lib/gcc/armv7l-unknown-linux-gnueabihf/"YOUR-CURRENT-GCC-VERSION
 
 git clone https://bitbucket.org/dark-sky/rpi-udl-linux       # Clone repo
 cd rpi-udl-linux
+
+# There is a needed header file stddef.h that has to be installed first in
+# /usr/include/linux before compiling. Lets sanitize and install the uapi 
+# headers first before compiling the kernel:
+
+mkdir hdrs
+make INSTALL_HDR_PATH=./hdrs headers_install
+find ./hdrs/include \( -name .install -o -name ..install.cmd \) -delete
+sudo cp -Rv ./hdrs/include/* /usr/include/
+rm -r hdrs
+
 make -j4 bcm2709-udl_defconfig                    # Generate .config file
 make -j4 menuconfig                               # Save and exit
 make -j4                                          # Compile kernel
@@ -50,9 +61,10 @@ sudo cp -v arch/arm/boot/dts/bcm2837-rpi-3-b.dtb /boot/
 sudo cp -v arch/arm/boot/dts/overlays/*.dtb* /boot/overlays/
 sudo cp -v arch/arm/boot/dts/overlays/README /boot/overlays/
 
-#  INSTALL NEW SANITIZED DVB HEADERS FOR USER SPACE APPS TO SDCARD'S ROOT PARTITION
+# Install the updated firmware:
 
-sudo cp -v sanitized-dvb-headers/* /usr/include/linux/dvb/
+cd firmware
+sudo make install
 
 # DO NOT SKIP THIS. It seems they have fixed this so reverse it or it will cause problems
 
@@ -63,11 +75,3 @@ dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
 sudo sync
 
 sudo reboot
-
-NOTE:
-
-I DO NOT HAVE A PI 3B+ AND SO IT'S ONBOARD WIFI IS UNTESTED HERE. I INCLUDED THE LATEST
-RASPIAN FIRMWARE IN  firmware/brcm/ IN THIS TREE IF NEEDED.
-
-cd firmware
-sudo make install

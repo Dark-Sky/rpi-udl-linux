@@ -80,7 +80,10 @@ cp -v arch/arm/boot/dts/overlays/README /path-to-sdcard-fat32-partition/overlays
 
 # INSTALL NEW SANITIZED DVB HEADERS FOR USER SPACE APPS TO SDCARD'S ROOT PARTITION
 
-sudo cp -v sanitized-dvb-headers/* /path-to-the-sdcard-ext4-partition/usr/include/linux/dvb/
+mkdir hdrs
+make INSTALL_HDR_PATH=./hdrs headers_install
+find ./hdrs/include \( -name .install -o -name ..install.cmd \) -delete
+sudo cp -Rv ./hdrs/include/* /path-to-the-sdcard-ext4-partition/usr/include/
 
 # DO NOT SKIP THIS. It seems they have fixed this so reverse it or it will cause problems
 
