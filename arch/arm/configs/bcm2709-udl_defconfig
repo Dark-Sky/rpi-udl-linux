@@ -1,13 +1,13 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 4.19.0-rc2 Kernel Configuration
+# Linux/arm 4.19.0-rc3 Kernel Configuration
 #
 
 #
-# Compiler: arm-none-eabi-gcc (GNU Tools for Arm Embedded Processors 7-2017-q4-major) 7.2.1 20170904 (release) [ARM/embedded-7-branch revision 255204]
+# Compiler: arm-none-eabi-gcc (GNU Tools for Arm Embedded Processors 7-2018-q2-update) 7.3.1 20180622 (release) [ARM/embedded-7-branch revision 261907]
 #
 CONFIG_CC_IS_GCC=y
-CONFIG_GCC_VERSION=70201
+CONFIG_GCC_VERSION=70301
 CONFIG_CLANG_VERSION=0
 CONFIG_IRQ_WORK=y
 CONFIG_BUILDTIME_EXTABLE_SORT=y
@@ -2922,6 +2922,7 @@ CONFIG_SENSORS_LM75=m
 # CONFIG_PMBUS is not set
 # CONFIG_SENSORS_PWM_FAN is not set
 # CONFIG_SENSORS_RASPBERRYPI_HWMON is not set
+CONFIG_SENSORS_RPI_POE_FAN=m
 # CONFIG_SENSORS_SHT15 is not set
 CONFIG_SENSORS_SHT21=m
 CONFIG_SENSORS_SHT3x=m

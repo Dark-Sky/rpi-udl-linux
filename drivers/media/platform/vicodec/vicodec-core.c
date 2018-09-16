@@ -157,12 +157,11 @@ static int device_process(struct vicodec_ctx *ctx,
 			  struct vb2_v4l2_buffer *out_vb)
 {
 	struct vicodec_dev *dev = ctx->dev;
-	struct vicodec_q_data *q_out, *q_cap;
+	struct vicodec_q_data *q_cap;
 	struct v4l2_fwht_state *state = &ctx->state;
 	u8 *p_in, *p_out;
 	int ret;
 
-	q_out = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
 	q_cap = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
 	if (ctx->is_enc)
 		p_in = vb2_plane_vaddr(&in_vb->vb2_buf, 0);
@@ -1186,23 +1185,28 @@ static int vicodec_open(struct file *file)
 	ctx->q_data[V4L2_M2M_SRC].height = 720;
 	size = 1280 * 720 * ctx->q_data[V4L2_M2M_SRC].info->sizeimage_mult /
 		ctx->q_data[V4L2_M2M_SRC].info->sizeimage_div;
-	ctx->q_data[V4L2_M2M_SRC].sizeimage = size;
+	if (ctx->is_enc)
+		ctx->q_data[V4L2_M2M_SRC].sizeimage = size;
+	else
+		ctx->q_data[V4L2_M2M_SRC].sizeimage =
+			size + sizeof(struct fwht_cframe_hdr);
 	ctx->q_data[V4L2_M2M_DST] = ctx->q_data[V4L2_M2M_SRC];
 	ctx->q_data[V4L2_M2M_DST].info =
 		ctx->is_enc ? &pixfmt_fwht : v4l2_fwht_get_pixfmt(0);
 	size = 1280 * 720 * ctx->q_data[V4L2_M2M_DST].info->sizeimage_mult /
 		ctx->q_data[V4L2_M2M_DST].info->sizeimage_div;
-	ctx->q_data[V4L2_M2M_DST].sizeimage = size;
+	if (ctx->is_enc)
+		ctx->q_data[V4L2_M2M_DST].sizeimage =
+			size + sizeof(struct fwht_cframe_hdr);
+	else
+		ctx->q_data[V4L2_M2M_DST].sizeimage = size;
 	ctx->state.colorspace = V4L2_COLORSPACE_REC709;
 
-	size += sizeof(struct fwht_cframe_hdr);
 	if (ctx->is_enc) {
-		ctx->q_data[V4L2_M2M_DST].sizeimage = size;
 		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->enc_dev, ctx,
 						    &queue_init);
 		ctx->lock = &dev->enc_lock;
 	} else {
-		ctx->q_data[V4L2_M2M_SRC].sizeimage = size;
 		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->dec_dev, ctx,
 						    &queue_init);
 		ctx->lock = &dev->dec_lock;
@@ -1283,7 +1287,7 @@ static int vicodec_probe(struct platform_device *pdev)
 
 #ifdef CONFIG_MEDIA_CONTROLLER
 	dev->mdev.dev = &pdev->dev;
-	strlcpy(dev->mdev.model, "vicodec", sizeof(dev->mdev.model));
+	strscpy(dev->mdev.model, "vicodec", sizeof(dev->mdev.model));
 	media_device_init(&dev->mdev);
 	dev->v4l2_dev.mdev = &dev->mdev;
 #endif
@@ -1311,7 +1315,7 @@ static int vicodec_probe(struct platform_device *pdev)
 	vfd = &dev->enc_vfd;
 	vfd->lock = &dev->enc_mutex;
 	vfd->v4l2_dev = &dev->v4l2_dev;
-	strlcpy(vfd->name, "vicodec-enc", sizeof(vfd->name));
+	strscpy(vfd->name, "vicodec-enc", sizeof(vfd->name));
 	v4l2_disable_ioctl(vfd, VIDIOC_DECODER_CMD);
 	v4l2_disable_ioctl(vfd, VIDIOC_TRY_DECODER_CMD);
 	video_set_drvdata(vfd, dev);
@@ -1328,7 +1332,7 @@ static int vicodec_probe(struct platform_device *pdev)
 	vfd = &dev->dec_vfd;
 	vfd->lock = &dev->dec_mutex;
 	vfd->v4l2_dev = &dev->v4l2_dev;
-	strlcpy(vfd->name, "vicodec-dec", sizeof(vfd->name));
+	strscpy(vfd->name, "vicodec-dec", sizeof(vfd->name));
 	v4l2_disable_ioctl(vfd, VIDIOC_ENCODER_CMD);
 	v4l2_disable_ioctl(vfd, VIDIOC_TRY_ENCODER_CMD);
 	video_set_drvdata(vfd, dev);

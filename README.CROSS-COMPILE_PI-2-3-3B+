@@ -9,7 +9,7 @@ THE NEW KERNEL
 ********************************************************************************
 
 
-# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc2
+# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc3
 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -78,12 +78,10 @@ cp -v arch/arm/boot/dts/bcm2837-rpi-3-b.dtb /path-to-sdcard-fat32-partition/
 cp -v arch/arm/boot/dts/overlays/*.dtb* /path-to-sdcard-fat32-partition/overlays/
 cp -v arch/arm/boot/dts/overlays/README /path-to-sdcard-fat32-partition/overlays/
 
-# INSTALL NEW SANITIZED DVB HEADERS FOR USER SPACE APPS TO SDCARD'S ROOT PARTITION
+# INSTALL NEW SANITIZED UAPI HEADERS FOR USER SPACE APPS TO SDCARD'S ROOT PARTITION.
+# (THIS WILL INCLUDE THE NEEDED DVB HEADERS)
 
-mkdir hdrs
-make INSTALL_HDR_PATH=./hdrs headers_install
-find ./hdrs/include \( -name .install -o -name ..install.cmd \) -delete
-sudo cp -Rv ./hdrs/include/* /path-to-the-sdcard-ext4-partition/usr/include/
+sudo cp -Rv ./sanitized-headers/include/* /path-to-the-sdcard-ext4-partition/usr/include/
 
 # DO NOT SKIP THIS. It seems they have fixed this so reverse it or it will cause problems
 

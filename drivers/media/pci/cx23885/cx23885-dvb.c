@@ -1167,7 +1167,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
 		sp2_config.priv = port;
 		sp2_config.ci_control = cx23885_sp2_ci_ctrl;
 		memset(&info, 0, sizeof(struct i2c_board_info));
-		strlcpy(info.type, "sp2", I2C_NAME_SIZE);
+		strscpy(info.type, "sp2", I2C_NAME_SIZE);
 		info.addr = 0x40;
 		info.platform_data = &sp2_config;
 		request_module(info.type);
@@ -1837,7 +1837,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		case 1:
 			/* attach demod + tuner combo */
 			memset(&info, 0, sizeof(info));
-			strlcpy(info.type, "tda10071_cx24118", I2C_NAME_SIZE);
+			strscpy(info.type, "tda10071_cx24118", I2C_NAME_SIZE);
 			info.addr = 0x05;
 			info.platform_data = &tda10071_pdata;
 			request_module("tda10071");
@@ -1854,7 +1854,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			/* attach SEC */
 			a8293_pdata.dvb_frontend = fe0->dvb.frontend;
 			memset(&info, 0, sizeof(info));
-			strlcpy(info.type, "a8293", I2C_NAME_SIZE);
+			strscpy(info.type, "a8293", I2C_NAME_SIZE);
 			info.addr = 0x0b;
 			info.platform_data = &a8293_pdata;
 			request_module("a8293");
@@ -1875,7 +1875,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2165_pdata.chip_mode = SI2165_MODE_PLL_XTAL;
 			si2165_pdata.ref_freq_hz = 16000000;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2165", I2C_NAME_SIZE);
+			strscpy(info.type, "si2165", I2C_NAME_SIZE);
 			info.addr = 0x64;
 			info.platform_data = &si2165_pdata;
 			request_module(info.type);
@@ -1909,7 +1909,7 @@ static int dvb_register(struct cx23885_tsport *port)
 
 		/* attach demod + tuner combo */
 		memset(&info, 0, sizeof(info));
-		strlcpy(info.type, "tda10071_cx24118", I2C_NAME_SIZE);
+		strscpy(info.type, "tda10071_cx24118", I2C_NAME_SIZE);
 		info.addr = 0x05;
 		info.platform_data = &tda10071_pdata;
 		request_module("tda10071");
@@ -1926,7 +1926,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		/* attach SEC */
 		a8293_pdata.dvb_frontend = fe0->dvb.frontend;
 		memset(&info, 0, sizeof(info));
-		strlcpy(info.type, "a8293", I2C_NAME_SIZE);
+		strscpy(info.type, "a8293", I2C_NAME_SIZE);
 		info.addr = 0x0b;
 		info.platform_data = &a8293_pdata;
 		request_module("a8293");
@@ -1959,7 +1959,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			ts2020_config.fe = fe0->dvb.frontend;
 			ts2020_config.get_agc_pwm = m88ds3103_get_agc_pwm;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "ts2020", I2C_NAME_SIZE);
+			strscpy(info.type, "ts2020", I2C_NAME_SIZE);
 			info.addr = 0x60;
 			info.platform_data = &ts2020_config;
 			request_module(info.type);
@@ -1996,7 +1996,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2168_config.fe = &fe0->dvb.frontend;
 			si2168_config.ts_mode = SI2168_TS_SERIAL;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+			strscpy(info.type, "si2168", I2C_NAME_SIZE);
 			info.addr = 0x64;
 			info.platform_data = &si2168_config;
 			request_module(info.type);
@@ -2015,7 +2015,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2157_config.fe = fe0->dvb.frontend;
 			si2157_config.if_port = 1;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+			strscpy(info.type, "si2157", I2C_NAME_SIZE);
 			info.addr = 0x60;
 			info.platform_data = &si2157_config;
 			request_module(info.type);
@@ -2043,7 +2043,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		si2168_config.fe = &fe0->dvb.frontend;
 		si2168_config.ts_mode = SI2168_TS_PARALLEL;
 		memset(&info, 0, sizeof(struct i2c_board_info));
-		strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+		strscpy(info.type, "si2168", I2C_NAME_SIZE);
 		info.addr = 0x64;
 		info.platform_data = &si2168_config;
 		request_module(info.type);
@@ -2061,7 +2061,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		si2157_config.fe = fe0->dvb.frontend;
 		si2157_config.if_port = 1;
 		memset(&info, 0, sizeof(struct i2c_board_info));
-		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+		strscpy(info.type, "si2157", I2C_NAME_SIZE);
 		info.addr = 0x60;
 		info.platform_data = &si2157_config;
 		request_module(info.type);
@@ -2091,7 +2091,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		ts2020_config.fe = fe0->dvb.frontend;
 		ts2020_config.get_agc_pwm = m88ds3103_get_agc_pwm;
 		memset(&info, 0, sizeof(struct i2c_board_info));
-		strlcpy(info.type, "ts2020", I2C_NAME_SIZE);
+		strscpy(info.type, "ts2020", I2C_NAME_SIZE);
 		info.addr = 0x60;
 		info.platform_data = &ts2020_config;
 		request_module(info.type);
@@ -2140,7 +2140,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		}
 
 		memset(&info, 0, sizeof(info));
-		strlcpy(info.type, "m88ds3103", I2C_NAME_SIZE);
+		strscpy(info.type, "m88ds3103", I2C_NAME_SIZE);
 		info.addr = 0x68;
 		info.platform_data = &m88ds3103_pdata;
 		request_module(info.type);
@@ -2160,7 +2160,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		ts2020_config.fe = fe0->dvb.frontend;
 		ts2020_config.get_agc_pwm = m88ds3103_get_agc_pwm;
 		memset(&info, 0, sizeof(struct i2c_board_info));
-		strlcpy(info.type, "ts2020", I2C_NAME_SIZE);
+		strscpy(info.type, "ts2020", I2C_NAME_SIZE);
 		info.addr = 0x60;
 		info.platform_data = &ts2020_config;
 		request_module(info.type);
@@ -2205,7 +2205,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		si2168_config.i2c_adapter = &adapter;
 		si2168_config.fe = &fe0->dvb.frontend;
 		memset(&info, 0, sizeof(struct i2c_board_info));
-		strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+		strscpy(info.type, "si2168", I2C_NAME_SIZE);
 		info.addr = 0x64;
 		info.platform_data = &si2168_config;
 		request_module(info.type);
@@ -2223,7 +2223,7 @@ static int dvb_register(struct cx23885_tsport *port)
 		si2157_config.fe = fe0->dvb.frontend;
 		si2157_config.if_port = 1;
 		memset(&info, 0, sizeof(struct i2c_board_info));
-		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+		strscpy(info.type, "si2157", I2C_NAME_SIZE);
 		info.addr = 0x60;
 		info.platform_data = &si2157_config;
 		request_module(info.type);
@@ -2256,7 +2256,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			/* attach SEC */
 			a8293_pdata.dvb_frontend = fe0->dvb.frontend;
 			memset(&info, 0, sizeof(info));
-			strlcpy(info.type, "a8293", I2C_NAME_SIZE);
+			strscpy(info.type, "a8293", I2C_NAME_SIZE);
 			info.addr = 0x0b;
 			info.platform_data = &a8293_pdata;
 			request_module("a8293");
@@ -2273,7 +2273,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			memset(&m88rs6000t_config, 0, sizeof(m88rs6000t_config));
 			m88rs6000t_config.fe = fe0->dvb.frontend;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "m88rs6000t", I2C_NAME_SIZE);
+			strscpy(info.type, "m88rs6000t", I2C_NAME_SIZE);
 			info.addr = 0x21;
 			info.platform_data = &m88rs6000t_config;
 			request_module("%s", info.type);
@@ -2298,7 +2298,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2168_config.fe = &fe0->dvb.frontend;
 			si2168_config.ts_mode = SI2168_TS_SERIAL;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+			strscpy(info.type, "si2168", I2C_NAME_SIZE);
 			info.addr = 0x64;
 			info.platform_data = &si2168_config;
 			request_module("%s", info.type);
@@ -2316,7 +2316,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2157_config.fe = fe0->dvb.frontend;
 			si2157_config.if_port = 1;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+			strscpy(info.type, "si2157", I2C_NAME_SIZE);
 			info.addr = 0x60;
 			info.platform_data = &si2157_config;
 			request_module("%s", info.type);
@@ -2351,7 +2351,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2168_config.fe = &fe0->dvb.frontend;
 			si2168_config.ts_mode = SI2168_TS_SERIAL;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+			strscpy(info.type, "si2168", I2C_NAME_SIZE);
 			info.addr = 0x64;
 			info.platform_data = &si2168_config;
 			request_module("%s", info.type);
@@ -2369,7 +2369,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2157_config.fe = fe0->dvb.frontend;
 			si2157_config.if_port = 1;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+			strscpy(info.type, "si2157", I2C_NAME_SIZE);
 			info.addr = 0x60;
 			info.platform_data = &si2157_config;
 			request_module("%s", info.type);
@@ -2398,7 +2398,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2168_config.fe = &fe0->dvb.frontend;
 			si2168_config.ts_mode = SI2168_TS_SERIAL;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+			strscpy(info.type, "si2168", I2C_NAME_SIZE);
 			info.addr = 0x66;
 			info.platform_data = &si2168_config;
 			request_module("%s", info.type);
@@ -2416,7 +2416,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2157_config.fe = fe0->dvb.frontend;
 			si2157_config.if_port = 1;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+			strscpy(info.type, "si2157", I2C_NAME_SIZE);
 			info.addr = 0x62;
 			info.platform_data = &si2157_config;
 			request_module("%s", info.type);
@@ -2458,7 +2458,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2157_config.if_port = 1;
 			si2157_config.inversion = 1;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+			strscpy(info.type, "si2157", I2C_NAME_SIZE);
 			info.addr = 0x60;
 			info.platform_data = &si2157_config;
 			request_module("%s", info.type);
@@ -2494,7 +2494,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2157_config.if_port = 1;
 			si2157_config.inversion = 1;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+			strscpy(info.type, "si2157", I2C_NAME_SIZE);
 			info.addr = 0x62;
 			info.platform_data = &si2157_config;
 			request_module("%s", info.type);
@@ -2534,7 +2534,7 @@ static int dvb_register(struct cx23885_tsport *port)
 			si2157_config.if_port = 1;
 			si2157_config.inversion = 1;
 			memset(&info, 0, sizeof(struct i2c_board_info));
-			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+			strscpy(info.type, "si2157", I2C_NAME_SIZE);
 			info.addr = 0x60;
 			info.platform_data = &si2157_config;
 			request_module("%s", info.type);

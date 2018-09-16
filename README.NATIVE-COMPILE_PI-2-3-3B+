@@ -8,7 +8,7 @@ THE NEW KERNEL
 
 *****************************************************************************
 
-# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc2
+# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc3
 
 # UPDATE:
 
@@ -19,26 +19,18 @@ sudo pacman -S pigz
 
 # Adjust gcc stddef.h header path:
 
-# For some reason lately the current gcc header stddef.h is not getting picked up in the system include
-# path so we need to make a link so it will be found:
-
 sudo ln -s /usr/lib/gcc/armv7l-unknown-linux-gnueabihf/"YOUR-CURRENT-GCC-VERSION"/include/stddef.h /usr/include/linux/stddef.h
 
 # CLONE REPO & COMPILE KERNEL
-# Note: If you upgraded to gcc8 there will be several warnings. They are safe to ignore.
 
 git clone https://bitbucket.org/dark-sky/rpi-udl-linux       # Clone repo
 cd rpi-udl-linux
 
 # There is a needed header file stddef.h that has to be installed first in
-# /usr/include/linux before compiling. Lets sanitize and install the uapi 
-# headers first before compiling the kernel:
+# /usr/include/linux before compiling. Lets sanitize and install all of the
+# uapi (including the dvb headers) headers first before compiling the kernel:
 
-mkdir hdrs
-make INSTALL_HDR_PATH=./hdrs headers_install
-find ./hdrs/include \( -name .install -o -name ..install.cmd \) -delete
-sudo cp -Rv ./hdrs/include/* /usr/include/
-rm -r hdrs
+sudo cp -Rv ./sanitized-headers/include/* /usr/include/
 
 make -j4 bcm2709-udl_defconfig                    # Generate .config file
 make -j4 menuconfig                               # Save and exit
