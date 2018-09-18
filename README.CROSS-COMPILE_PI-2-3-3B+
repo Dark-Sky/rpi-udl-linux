@@ -9,7 +9,7 @@ THE NEW KERNEL
 ********************************************************************************
 
 
-# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc3
+# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc4
 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -92,9 +92,3 @@ dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
 sudo sync         # Flush data still in memory to sdcard
 
 Safely remove the sdcard and put in your Raspberry Pi and boot it up.
-
-NOTE:
-
-I DO NOT HAVE A PI 3B+ AND SO IT'S ONBOARD WIFI IS UNTESTED HERE. I INCLUDED THE LATEST
-RASPIAN FIRMWARE IN  firmware/brcm/ IN THIS TREE IF NEEDED. THE bcrm DIRECTORY GOES IN 
-THE ROOT DIRECTORY OF YOUR RASPBERRY PI OS UNDER /usr/lib/firmware/

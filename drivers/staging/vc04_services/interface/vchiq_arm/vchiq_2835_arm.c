@@ -436,7 +436,7 @@ create_pagelist(char __user *buf, size_t count, unsigned short type)
 	pagelist = dma_zalloc_coherent(g_dev,
 				       pagelist_size,
 				       &dma_addr,
-				       GFP_KERNEL);
+				       GFP_NOIO);
 
 	vchiq_log_trace(vchiq_arm_log_level, "%s - %pK", __func__, pagelist);
 
