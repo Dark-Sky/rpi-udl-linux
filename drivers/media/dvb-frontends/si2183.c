@@ -61,11 +61,14 @@ struct si2183_dev {
 	u8 ts_mode;
 	bool ts_clock_inv;
 	bool ts_clock_gapped;
+	int start_clk_mode;
 	u8 agc_mode;
 	struct si_base *base;
 	void (*RF_switch)(struct i2c_adapter * i2c, u8 rf_in, u8 flag);
 	u8 rf_in;
 	u8 active_fe;
+	void (*TS_switch)(struct i2c_adapter * i2c,u8 flag);
+	void (*LED_switch)(struct i2c_adapter * i2c,u8 flag);
 
 	void (*write_properties) (struct i2c_adapter *i2c,u8 reg, u32 buf);
 	void (*read_properties) (struct i2c_adapter *i2c,u8 reg, u32 *buf);
@@ -864,6 +867,15 @@ static int si2183_init(struct dvb_frontend *fe)
 	c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
 
 	cmd = si2183_CMD(client, SI2183_INIT);
+
+	if(dev->start_clk_mode == 1){
+	   cmd.args[3] = 0;
+	   cmd.args[5] = 0x6;
+	}
+
+	cmd.wlen = 13;
+	cmd.rlen = 0;
+	cmd = si2183_CMD(client, cmd);
 	if (cmd.ret)
 		goto err;
 

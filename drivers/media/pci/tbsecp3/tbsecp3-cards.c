@@ -18,6 +18,54 @@
 #include "tbsecp3.h"
 
 struct tbsecp3_board tbsecp3_boards[] = {
+	[TBSECP3_BOARD_TBS6904X] = {
+		.board_id	= TBSECP3_BOARD_TBS6904X,
+		.name		= "TurboSight TBS 6904x DVB-S/S2/S2x ",
+		.adapters	= 4,
+		.i2c_speed	= 39,
+		.eeprom_i2c	= 0,
+		.eeprom_addr = 0x10,
+		.adap_config	= {
+			{
+				.ts_in = 3,
+				.i2c_bus_nr = 1,
+				.gpio.demod_reset.lvl = TBSECP3_GPIODEF_LOW,
+				.gpio.demod_reset.nr  = TBSECP3_GPIO_PIN(1, 0),
+				.gpio.lnb_power.lvl   = TBSECP3_GPIODEF_LOW,
+				.gpio.lnb_power.nr    = TBSECP3_GPIO_PIN(3, 2),
+				.gpio.lnb_voltage.lvl = TBSECP3_GPIODEF_HIGH,
+				.gpio.lnb_voltage.nr  = TBSECP3_GPIO_PIN(3, 1),
+			},
+			{
+				.ts_in = 2,
+				.i2c_bus_nr = 1,
+				.gpio.lnb_power.lvl   = TBSECP3_GPIODEF_LOW,
+				.gpio.lnb_power.nr    = TBSECP3_GPIO_PIN(2, 2),
+				.gpio.lnb_voltage.lvl = TBSECP3_GPIODEF_HIGH,
+				.gpio.lnb_voltage.nr  = TBSECP3_GPIO_PIN(2, 1),
+			},
+			{
+				.ts_in = 1,
+				.i2c_bus_nr = 0,
+				.gpio.demod_reset.lvl = TBSECP3_GPIODEF_LOW,
+				.gpio.demod_reset.nr  = TBSECP3_GPIO_PIN(0, 0),
+				.gpio.lnb_power.lvl   = TBSECP3_GPIODEF_LOW,
+				.gpio.lnb_power.nr	  = TBSECP3_GPIO_PIN(1, 2),
+				.gpio.lnb_voltage.lvl = TBSECP3_GPIODEF_HIGH,
+				.gpio.lnb_voltage.nr  = TBSECP3_GPIO_PIN(1, 1),
+			},
+			{
+				.ts_in = 0,
+				.i2c_bus_nr = 0,
+				.gpio.lnb_power.lvl   = TBSECP3_GPIODEF_LOW,
+				.gpio.lnb_power.nr	  = TBSECP3_GPIO_PIN(0, 2),
+				.gpio.lnb_voltage.lvl = TBSECP3_GPIODEF_HIGH,
+				.gpio.lnb_voltage.nr  = TBSECP3_GPIO_PIN(0, 1),
+			},
+
+		}
+	},
+
 	[TBSECP3_BOARD_TBS6308] = {
 		.board_id	= TBSECP3_BOARD_TBS6308,
 		.name		= "TurboSight TBS 6308 HDMI Capture",
@@ -323,6 +371,7 @@ struct tbsecp3_board tbsecp3_boards[] = {
 		.name		= "TurboSight TBS 6205 DVB-T/T2/C ",
 		.i2c_speed	= 39,
 		.eeprom_i2c	= 1,
+		.eeprom_addr = 0xa0,
 		.adapters	= 4,
 		.adap_config	= {
 			{
@@ -357,6 +406,7 @@ struct tbsecp3_board tbsecp3_boards[] = {
 		.adapters	= 2,
 		.i2c_speed	= 39,
 		.eeprom_i2c	= 0,
+		.eeprom_addr = 0xa0,
 		.adap_config	= {
 			{
 				.ts_in = 1,
@@ -637,6 +687,7 @@ struct tbsecp3_board tbsecp3_boards[] = {
 		.adapters	= 1,
 		.i2c_speed	= 39,
 		.eeprom_i2c	= 0,
+		.eeprom_addr = 0xa0,
 		.adap_config	= {
 			{
 				.ts_in = 0,
@@ -656,6 +707,7 @@ struct tbsecp3_board tbsecp3_boards[] = {
 		.adapters	= 2,
 		.i2c_speed	= 39,
 		.eeprom_i2c	= 0,
+		.eeprom_addr = 0xa0,
 		.adap_config	= {
 			{
 				.ts_in = 0,

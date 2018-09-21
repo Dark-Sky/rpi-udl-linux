@@ -49,7 +49,6 @@ struct stv_base {
 	u8                   adr;
 	struct i2c_adapter  *i2c;
 	struct mutex         i2c_lock;
-	struct mutex         status_lock;
 	int                  count;
 	u32                  extclk;
 	u8                   ts_mode;
@@ -207,11 +206,9 @@ static int stid135_init(struct dvb_frontend *fe)
 
 	dev_dbg(&state->base->i2c->dev, "%s: demod %d + tuner %d\n", __func__, state->nr, state->rf_in);
 
-	mutex_lock(&state->base->status_lock);
 	err |= fe_stid135_tuner_enable(p_params->handle_demod, state->rf_in + 1);
 	err |= fe_stid135_diseqc_init(state->base->handle, state->rf_in + 1, FE_SAT_DISEQC_2_3_PWM);
 	err |= fe_stid135_set_rfmux_path(p_params->handle_demod, state->nr + 1, state->rf_in + 1);
-	mutex_unlock(&state->base->status_lock);
 
 	if (err != FE_LLA_NO_ERROR)
 		dev_err(&state->base->i2c->dev, "%s: enable tuner %d + demod %d error %d !\n", __func__, state->rf_in, state->nr, err);
@@ -278,8 +275,6 @@ static int stid135_set_parameters(struct dvb_frontend *fe)
 	err = FE_STiD135_GetLoFreqHz(state->base->handle, &(search_params.lo_frequency));
 	search_params.lo_frequency *= 1000000;
 
-	mutex_lock(&state->base->status_lock);
-
 	dev_dbg(&state->base->i2c->dev, "%s: demod %d + tuner %d\n", __func__, state->nr, state->rf_in);
 	err |= fe_stid135_set_rfmux_path(p_params->handle_demod, state->nr + 1, state->rf_in + 1);
 
@@ -307,7 +302,6 @@ static int stid135_set_parameters(struct dvb_frontend *fe)
 		dev_err(&state->base->i2c->dev, "%s: fe_stid135_set_pls error %d !\n", __func__, err);
 
 	err |= fe_stid135_search(state->base->handle, state->nr + 1, &search_params, &search_results, 0);
-	mutex_unlock(&state->base->status_lock);
 
 	if (err != FE_LLA_NO_ERROR)
 	{
@@ -361,12 +355,10 @@ static int stid135_read_status(struct dvb_frontend *fe, enum fe_status *status)
 	p->pre_bit_count.len =1;
 	p->pre_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 
-	mutex_lock(&state->base->status_lock);
 	err = fe_stid135_tracking(state->base->handle, state->nr + 1, &track_info);
-	mutex_unlock(&state->base->status_lock);
 
 	if (err != FE_LLA_NO_ERROR) {
-		dev_err(&state->base->i2c->dev, "%s: fe_stid135_tracking error %d !\n", __func__, err);
+		dev_warn(&state->base->i2c->dev, "%s: fe_stid135_tracking error %d !\n", __func__, err);
 		return 0;
 	}
 	
@@ -465,9 +457,7 @@ static int stid135_set_tone(struct dvb_frontend *fe, enum fe_sec_tone_mode tone)
 		return 0;
 	}
 
-	mutex_lock(&state->base->status_lock);
 	err = fe_stid135_set_22khz_cont(state->base->handle,state->rf_in + 1, tone == SEC_TONE_ON);
-	mutex_unlock(&state->base->status_lock);
 
 	if (err != FE_LLA_NO_ERROR)
 		dev_err(&state->base->i2c->dev, "%s: fe_stid135_set_22khz_cont error %d !\n", __func__, err);
@@ -484,10 +474,8 @@ static int stid135_send_master_cmd(struct dvb_frontend *fe,
 	if (state->base->mode == 0)
 		return 0;
 
-	mutex_lock(&state->base->status_lock);
 	err |= fe_stid135_diseqc_init(state->base->handle, state->rf_in + 1, FE_SAT_DISEQC_2_3_PWM);
 	err |= fe_stid135_diseqc_send(state->base->handle, state->rf_in + 1, cmd->msg, cmd->msg_len);
-	mutex_unlock(&state->base->status_lock);
 
 	if (err != FE_LLA_NO_ERROR)
 		dev_err(&state->base->i2c->dev, "%s: fe_stid135_diseqc_send error %d !\n", __func__, err);
@@ -504,9 +492,7 @@ static int stid135_recv_slave_reply(struct dvb_frontend *fe,
 	if (state->base->mode == 0)
 		return 0;
 
-	mutex_lock(&state->base->status_lock);
 	err = fe_stid135_diseqc_receive(state->base->handle, reply->msg, &reply->msg_len);
-	mutex_unlock(&state->base->status_lock);
 
 	if (err != FE_LLA_NO_ERROR)
 		dev_err(&state->base->i2c->dev, "%s: fe_stid135_diseqc_receive error %d !\n", __func__, err);
@@ -687,7 +673,6 @@ struct dvb_frontend *stid135_attach(struct i2c_adapter *i2c,
 		base->read_properties = cfg->read_properties;
 
 		mutex_init(&base->i2c_lock);
-		mutex_init(&base->status_lock);
 
 		state->base = base;
 		if (stid135_probe(state) < 0) {
