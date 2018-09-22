@@ -985,8 +985,6 @@ static int lgdt3306a_set_parameters(struct dvb_frontend *fe)
 	struct lgdt3306a_state *state = fe->demodulator_priv;
 	int ret;
 
-	fprintk("(%d, %d)", p->frequency, p->modulation);
-
 	if (state->current_frequency == p->frequency &&
 	   state->current_modulation == p->modulation) {
 		fprintk(" (already set, skipping ...)");

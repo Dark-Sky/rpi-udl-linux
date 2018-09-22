@@ -637,8 +637,6 @@ static int au8522_set_frontend(struct dvb_frontend *fe)
 	struct au8522_state *state = fe->demodulator_priv;
 	int ret = -EINVAL;
 
-	dprintk("%s(frequency=%d)\n", __func__, c->frequency);
-
 	if ((state->current_frequency == c->frequency) &&
 	    (state->current_modulation == c->modulation))
 		return 0;
