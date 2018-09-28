@@ -112,8 +112,6 @@ struct vicodec_ctx {
 
 	struct v4l2_ctrl_handler hdl;
 
-	/* Abort requested by m2m */
-	int			aborting;
 	struct vb2_v4l2_buffer *last_src_buf;
 	struct vb2_v4l2_buffer *last_dst_buf;
 
@@ -175,12 +173,18 @@ static int device_process(struct vicodec_ctx *ctx,
 	}
 
 	if (ctx->is_enc) {
-		unsigned int size = v4l2_fwht_encode(state, p_in, p_out);
+		struct vicodec_q_data *q_out;
 
-		vb2_set_plane_payload(&out_vb->vb2_buf, 0, size);
+		q_out = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+		state->info = q_out->info;
+		ret = v4l2_fwht_encode(state, p_in, p_out);
+		if (ret < 0)
+			return ret;
+		vb2_set_plane_payload(&out_vb->vb2_buf, 0, ret);
 	} else {
+		state->info = q_cap->info;
 		ret = v4l2_fwht_decode(state, p_in, p_out);
-		if (ret)
+		if (ret < 0)
 			return ret;
 		vb2_set_plane_payload(&out_vb->vb2_buf, 0, q_cap->sizeimage);
 	}
@@ -370,14 +374,6 @@ restart:
 			ctx->comp_has_next_frame = remaining >= frame_size;
 	}
 	return 1;
-}
-
-static void job_abort(void *priv)
-{
-	struct vicodec_ctx *ctx = priv;
-
-	/* Will cancel the transaction in the next interrupt handler */
-	ctx->aborting = 1;
 }
 
 /*
@@ -1264,7 +1260,6 @@ static const struct video_device vicodec_videodev = {
 
 static const struct v4l2_m2m_ops m2m_ops = {
 	.device_run	= device_run,
-	.job_abort	= job_abort,
 	.job_ready	= job_ready,
 };
 

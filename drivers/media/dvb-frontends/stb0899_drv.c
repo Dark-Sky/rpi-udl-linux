@@ -222,6 +222,38 @@ static struct stb0899_tab stb0899_est_tab[] = {
 	{ 5721,	526017 },
 };
 
+/* DVB-S2 Es/N0 to Eb/N0 vs modcode in dB * 100 vs modcode value */
+static struct stb0899_tab stb0899_ebn0_tab[] = {
+	{ -301,	     1 },	// QPSK FEC 1/4
+	{ -176,	     2 },	// QPSK FEC 1/3
+	{  -97,	     3 },	// QPSK FEC 2/5
+	{    0,	     4 },	// QPSK FEC 1/2
+	{   79,	     5 },	// QPSK FEC 3/5
+	{  125,	     6 },	// QPSK FEC 2/3
+	{  176,	     7 },	// QPSK FEC 3/4
+	{  204,	     8 },	// QPSK FEC 4/5
+	{  222,	     9 },	// QPSK FEC 5/6
+	{  250,	    10 },	// QPSK FEC 8/9
+	{  255,	    11 },	// QPSK FEC 9/10
+	{  255,	    12 },	// 8PSK FEC 3/5
+	{  301,	    13 },	// 8PSK FEC 2/3
+	{  352,	    14 },	// 8PSK FEC 3/4
+	{  398,	    15 },	// 8PSK FEC 5/6
+	{  426,	    16 },	// 8PSK FEC 8/9
+	{  431,	    17 },	// 8PSK FEC 9/10
+	{  426,	    18 },	// 16APSK FEC 2/3
+	{  477,	    19 },	// 16APSK FEC 3/4
+	{  505,	    20 },	// 16APSK FEC 4/5
+	{  523,	    21 },	// 16APSK FEC 5/6
+	{  551,	    22 },	// 16APSK FEC 8/9
+	{  556,	    23 },	// 16APSK FEC 9/10
+	{  574,	    24 },	// 32APSK FEC 3/4
+	{  602,	    25 },	// 32APSK FEC 4/5
+	{  620,	    26 },	// 32APSK FEC 5/6
+	{  648,	    27 },	// 32APSK FEC 8/9
+	{  653,	    28 },	// 32APSK FEC 9/10
+};
+
 static int _stb0899_read_reg(struct stb0899_state *state, unsigned int reg)
 {
 	int ret;
@@ -988,7 +1020,7 @@ static int stb0899_read_cnr(struct dvb_frontend *fe)
 	struct stb0899_state *state		= fe->demodulator_priv;
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
 
-	unsigned int val, quant, quantn = -1, est, estn = -1;
+	unsigned int modcod = 0, val, quant, quantn = -1, est, estn = -1;
 	u8 buf[2];
 	u32 reg;
 
@@ -1006,8 +1038,10 @@ static int stb0899_read_cnr(struct dvb_frontend *fe)
 	case SYS_DVBS2:
 		reg = STB0899_READ_S2REG(STB0899_S2DEMOD, UWP_CNTRL1);
 		quant = STB0899_GETFIELD(UWP_ESN0_QUANT, reg);
+		dprintk(state->verbose, FE_DEBUG, 1, "reg = %d quant = %d", reg, quant);
 		reg = STB0899_READ_S2REG(STB0899_S2DEMOD, UWP_STAT2);
 		est = STB0899_GETFIELD(ESN0_EST, reg);
+		dprintk(state->verbose, FE_DEBUG, 1, "reg = %d est = %d", reg, est);
 		if (est == 1) {
 			val = 301; /* C/N = 30.1 dB */
 		} else if (est == 2) {
@@ -1018,11 +1052,16 @@ static int stb0899_read_cnr(struct dvb_frontend *fe)
 		/* estn = 100 * log(est) */
 		estn = stb0899_table_lookup(stb0899_est_tab, ARRAY_SIZE(stb0899_est_tab) - 1, est);
 		/* snr(dBm/10) = -10*(log(est)-log(quant^2)) => snr(dBm/10) = (100*log(quant^2)-100*log(est))/10 */
-		val = (estn - quantn) / 10;
+		val = (estn - quantn);
+		//val = 10 * div_u64((u64)intlog10(quant^2), (1 << 24)) -10 * div_u64((u64)intlog10(est), (1 << 24));
+		modcod = STB0899_GETFIELD(UWP_DECODE_MOD, reg) >> 2;
 		}
-		cnr = val;
-		dprintk(state->verbose, FE_DEBUG, 1, "Es/N0 quant = %d (%d) estimate = %u (%d), C/N = %d * 0.1 dB",
-				quant, quantn, est, estn, cnr);
+		/* convert esno to ebno
+		 * ebno = esno - 10 * log(m) - 10 * log(r)
+		 * where m is bits/symbol (modulation), r is the coding rate (fec) */
+		cnr = (val - stb0899_table_lookup(stb0899_ebn0_tab, ARRAY_SIZE(stb0899_ebn0_tab) -1, modcod)) / 10;
+		dprintk(state->verbose, FE_DEBUG, 1, "Modcode = %d Es/N0 quant = %d (%d) estimate = %u (%d), C/N = %d * 0.1 dB",
+				modcod, quant, quantn, est, estn, cnr);
 		break;
 	default:
 		p->cnr.len = 1;
@@ -1595,10 +1634,215 @@ static int stb0899_get_frontend(struct dvb_frontend *fe,
 	struct stb0899_state *state		= fe->demodulator_priv;
 	struct stb0899_internal *internal	= &state->internal;
 
+	u32 reg;
+	unsigned int modcode = 0;
+	unsigned int stb0899_modcod = 0;
 	dprintk(state->verbose, FE_DEBUG, 1, "Get params");
 	p->symbol_rate = internal->srate;
 	p->frequency = internal->freq;
+	p->pilot = internal->pilots;
 
+	switch (state->delsys) {
+		case SYS_DVBS:
+		case SYS_DSS:
+			if(stb0899_read_reg(state, STB0899_IQSWAP & 4)) {
+				p->inversion = INVERSION_ON;
+				} else
+				p->inversion = INVERSION_OFF;
+			reg = stb0899_read_reg(state, STB0899_PLPARM);
+			switch (STB0899_GETFIELD(VITCURPUN, reg)) {
+				case 13:
+					p->fec_inner = FEC_1_2;
+					break;
+				case 18:
+					p->fec_inner = FEC_2_3;
+					break;
+				case 21:
+					p->fec_inner = FEC_3_4;
+					break;
+				case 24:
+					p->fec_inner = FEC_5_6;
+					break;
+				case 25:
+					p->fec_inner = FEC_6_7;
+					break;
+				case 26:
+					p->fec_inner = FEC_7_8;
+					break;
+				default:
+				dprintk(state->verbose, FE_DEBUG, 1, "invalid fec_innner\n");
+			}
+			switch (STB0899_GETFIELD(VITMAPPING, reg)) {
+				case 0:
+					p->modulation = QPSK;
+					p->rolloff = ROLLOFF_35;
+					break;
+				default:
+				dprintk(state->verbose, FE_DEBUG, 1, "invalid modulation\n");
+			}
+			break;
+		case SYS_DVBS2:
+			p->pilot = internal->pilots;
+			reg = STB0899_READ_S2REG(STB0899_S2DEMOD, UWP_STAT2);
+			modcode = STB0899_GETFIELD(UWP_DECODE_MOD, reg);
+			stb0899_modcod = modcode >> 2;
+			dprintk(state->verbose, FE_DEBUG, 1, "Modcode = %d", stb0899_modcod);
+			switch (stb0899_modcod) {
+				case 1:
+					p->fec_inner = FEC_1_4;
+					p->modulation = QPSK;
+					break;
+				case 2:
+					p->fec_inner = FEC_1_3;
+					p->modulation = QPSK;
+					break;
+				case 3:
+					p->fec_inner = FEC_2_5;
+					p->modulation = QPSK;
+					break;
+				case 4:
+					p->fec_inner = FEC_1_2;
+					p->modulation = QPSK;
+					break;
+				case 5:
+					p->fec_inner = FEC_3_5;
+					p->modulation = QPSK;
+					break;
+				case 6:
+					p->fec_inner = FEC_2_3;
+					p->modulation = QPSK;
+					break;
+				case 7:
+					p->fec_inner = FEC_3_4;
+					p->modulation = QPSK;
+					break;
+				case 8:
+					p->fec_inner = FEC_4_5;
+					p->modulation = QPSK;
+					break;
+				case 9:
+					p->fec_inner = FEC_5_6;
+					p->modulation = QPSK;
+					break;
+				case 10:
+					p->fec_inner = FEC_8_9;
+					p->modulation = QPSK;
+					break;
+				case 11:
+					p->fec_inner = FEC_9_10;
+					p->modulation = QPSK;
+					break;
+				case 12:
+					p->fec_inner = FEC_3_5;
+					p->modulation = PSK_8;
+					break;
+				case 13:
+					p->fec_inner = FEC_2_3;
+					p->modulation = PSK_8;
+					break;
+				case 14:
+					p->fec_inner = FEC_3_4;
+					p->modulation = PSK_8;
+					break;
+				case 15:
+					p->fec_inner = FEC_5_6;
+					p->modulation = PSK_8;
+					break;
+				case 16:
+					p->fec_inner = FEC_8_9;
+					p->modulation = PSK_8;
+					break;
+				case 17:
+					p->fec_inner = FEC_9_10;
+					p->modulation = PSK_8;
+					break;
+				case 18:
+					p->fec_inner = FEC_2_3;
+					p->modulation = APSK_16;
+					break;
+				case 19:
+					p->fec_inner = FEC_3_4;
+					p->modulation = APSK_16;
+					break;
+				case 20:
+					p->fec_inner = FEC_4_5;
+					p->modulation = APSK_16;
+					break;
+				case 21:
+					p->fec_inner = FEC_5_6;
+					p->modulation = APSK_16;
+					break;
+				case 22:
+					p->fec_inner = FEC_8_9;
+					p->modulation = APSK_16;
+					break;
+				case 23:
+					p->fec_inner = FEC_9_10;
+					p->modulation = APSK_16;
+					break;
+				case 24:
+					p->fec_inner = FEC_3_4;
+					p->modulation = APSK_32;
+					break;
+				case 25:
+					p->fec_inner = FEC_4_5;
+					p->modulation = APSK_32;
+					break;
+				case 26:
+					p->fec_inner = FEC_5_6;
+					p->modulation = APSK_32;
+					break;
+				case 27:
+					p->fec_inner = FEC_8_9;
+					p->modulation = APSK_32;
+					break;
+				case 28:
+					p->fec_inner = FEC_9_10;
+					p->modulation = APSK_32;
+					break;
+				default:
+				dprintk(state->verbose, FE_DEBUG, 1, "invalid modcode\n");
+			}
+			p->matype = (stb0899_read_reg(state, STB0899_MATSTRM) << 8) + stb0899_read_reg(state, STB0899_MATSTRL);
+			p->rolloff = p->matype >> 8 & 3;
+			dprintk(state->verbose, FE_DEBUG, 1, "matype = %02x\n", p->matype);
+			switch (p->rolloff) {
+				case 0:
+					p->rolloff = ROLLOFF_35;
+					break;
+				case 1:
+					p->rolloff = ROLLOFF_25;
+					break;
+				case 2:
+					p->rolloff = ROLLOFF_20;
+					dprintk(state->verbose, FE_DEBUG, 1, "rolloff = %d\n", reg);
+					break;
+				default:
+				dprintk(state->verbose, FE_DEBUG, 1, "invalid rolloff\n");
+			}
+			reg = STB0899_READ_S2REG(STB0899_S2DEMOD, DMD_CNTRL2);
+			p->inversion = STB0899_GETFIELD(SPECTRUM_INVERT, reg);
+			if (p->inversion) {
+				p->inversion = INVERSION_ON;
+			} else  p->inversion = INVERSION_OFF;
+			reg = stb0899_read_reg(state, STB0899_CFGPDELSTATUS2);
+			internal->frame_length = reg >> 4;
+			switch(internal->frame_length) {
+				case 1:
+					p->frame_len = STB0899_SHORT_FRAME;
+					break;
+				case 2:
+					p->frame_len = STB0899_LONG_FRAME;
+					break;
+				default:
+					break;
+			}
+			dprintk(state->verbose, FE_DEBUG, 1, "Frame_length = %02x reg = %02x\n", p->frame_len, reg);
+
+			break;
+		default:
+			break;
+	}
 	return 0;
 }
 
@@ -1718,7 +1962,7 @@ static const struct dvb_frontend_ops stb0899_ops = {
 		.name			= "STB0899 Multistandard",
 		.frequency_min_hz	=  950 * MHz,
 		.frequency_max_hz	= 2150 * MHz,
-		.symbol_rate_min	=  5000000,
+		.symbol_rate_min	=   500000,
 		.symbol_rate_max	= 45000000,
 
 		.caps			= FE_CAN_INVERSION_AUTO	|

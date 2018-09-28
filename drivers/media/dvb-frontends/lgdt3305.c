@@ -740,6 +740,10 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe)
 
 	/* lgdt3305_mpeg_mode_polarity calls lgdt3305_soft_reset */
 	ret = lgdt3305_mpeg_mode_polarity(state);
+
+	/* Reset DVBv5 stats */
+	p->strength.stat[0].scale = FE_SCALE_RELATIVE;
+	p->strength.stat[0].uvalue = 0;
 fail:
 	return ret;
 }
@@ -912,12 +916,23 @@ static int lgdt3305_read_status(struct dvb_frontend *fe, enum fe_status *status)
 {
 	struct lgdt3305_state *state = fe->demodulator_priv;
 	u8 val;
+	u16 strength;
 	int ret, signal, inlock, nofecerr, snrgood,
 		cr_lock, fec_lock, sync_lock;
 
+	if (fe->ops.tuner_ops.get_rf_strength) {
+		ret = fe->ops.tuner_ops.get_rf_strength(fe, &strength);
+		if (ret == 0){
+			lg_dbg("strength=%d\n", strength);
+		} else {
+			lg_dbg("fe->ops.tuner_ops.get_rf_strength() failed\n");
+		}
+	}
 	*status = 0;
 
+	msleep(100); // aero-m lgdt3305_read_reg: error (addr 59 reg 0003 error (ret == -121)
 	ret = lgdt3305_read_reg(state, LGDT3305_GEN_STATUS, &val);
+	msleep(100); // aero-m lgdt3305_read_reg: error (addr 59 reg 0003 error (ret == -121)
 	if (lg_fail(ret))
 		goto fail;
 
@@ -1168,7 +1183,7 @@ static int lgdt3305_get_spectrum_scan(struct dvb_frontend *fe, struct dvb_fe_spe
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
 	struct lgdt3305_state *state = fe->demodulator_priv;
 	int x, ret;
-	u16 snr;
+	u16 lvl;
 
 	p->frequency		= 0;
 	p->bandwidth_hz		= 1000000;
@@ -1177,7 +1192,7 @@ static int lgdt3305_get_spectrum_scan(struct dvb_frontend *fe, struct dvb_fe_spe
 
 	fprintk("");
 
-	*s->type = SC_DB;
+	*s->type = SC_DBM;
 	if (fe->ops.tuner_ops.set_params) {
 		for (x = 0; x < s->num_freq; x++)
 		{
@@ -1229,10 +1244,11 @@ static int lgdt3305_get_spectrum_scan(struct dvb_frontend *fe, struct dvb_fe_spe
 
 			state->current_modulation = p->modulation;
 			lgdt3305_soft_reset(state);
-			msleep(800);
+			msleep(10);
 
-			lgdt3305_read_snr(fe, &snr);
-			*(s->rf_level + x) = snr * 100;
+			fe->ops.tuner_ops.get_rf_strength(fe, &lvl);
+			*(s->rf_level + x) = (s32)124.211 * lvl - 110000;
+			lg_dbg("lvl = %d, rf_level = %d\n", lvl, *(s->rf_level +x));
 		}
 	}
 	return 0;

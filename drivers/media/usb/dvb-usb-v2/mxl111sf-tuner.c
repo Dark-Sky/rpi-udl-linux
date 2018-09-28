@@ -318,21 +318,24 @@ fail:
 
 /* ------------------------------------------------------------------------ */
 
-#if 0
+#if 1
 static int mxl111sf_tuner_init(struct dvb_frontend *fe)
 {
 	struct mxl111sf_tuner_state *state = fe->tuner_priv;
-	int ret;
+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+	int ret = 0;
 
 	/* wake from standby handled by usb driver */
-
+	/* init statistics in order signal app which are supported */
+	c->strength.len = 1;
+	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 	return ret;
 }
 
 static int mxl111sf_tuner_sleep(struct dvb_frontend *fe)
 {
 	struct mxl111sf_tuner_state *state = fe->tuner_priv;
-	int ret;
+	int ret = 0;
 
 	/* enter standby mode handled by usb driver */
 
@@ -364,10 +367,12 @@ fail:
 static int mxl111sf_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
 {
 	struct mxl111sf_tuner_state *state = fe->tuner_priv;
+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	u8 val1, val2;
 	int ret;
 
 	*strength = 0;
+	c->strength.stat[0].svalue = 0;
 
 	ret = mxl111sf_tuner_write_reg(state, 0x00, 0x02);
 	if (mxl_fail(ret))
@@ -379,7 +384,10 @@ static int mxl111sf_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
 	if (mxl_fail(ret))
 		goto fail;
 
+	c->strength.stat[0].scale = FE_SCALE_DECIBEL;
+	c->strength.stat[0].svalue = (s32)124.211 * (val1 | ((val2 & 0x07) << 8)) -110000;
 	*strength = val1 | ((val2 & 0x07) << 8);
+	mxl_dbg("(strength = %d)", *strength);
 fail:
 	ret = mxl111sf_tuner_write_reg(state, 0x00, 0x00);
 	mxl_fail(ret);
@@ -470,7 +478,7 @@ static const struct dvb_tuner_ops mxl111sf_tuner_tuner_ops = {
 		.frequency_step_hz = ,
 #endif
 	},
-#if 0
+#if 1
 	.init              = mxl111sf_tuner_init,
 	.sleep             = mxl111sf_tuner_sleep,
 #endif

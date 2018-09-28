@@ -23,6 +23,7 @@
 #define __STB0899_PRIV_H
 
 #include <media/dvb_frontend.h>
+#include <media/dvb_math.h>
 #include "stb0899_drv.h"
 
 #define FE_ERROR				0
@@ -130,7 +131,8 @@ enum stb0899_modcod {
 
 enum stb0899_frame {
 	STB0899_LONG_FRAME,
-	STB0899_SHORT_FRAME
+	STB0899_SHORT_FRAME,
+	STB0899_BOTH_FRAME
 };
 
 enum stb0899_alpha {
