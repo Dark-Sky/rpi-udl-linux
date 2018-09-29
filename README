@@ -1,6 +1,6 @@
 # THIS KERNEL IS NOW COMPATABLE WITH THE PI 3B+
 
-# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc4
+# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc5
 Majortom's & DarkSky's repository based off of V4L media_tree,
 powARman's saa716x work, and Updatelee's work. With out 
 Updatelees's hard work this would not be possible; Thanks UDL!
