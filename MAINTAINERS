@@ -2311,7 +2311,6 @@ F:	drivers/clocksource/cadence_ttc_timer.c
 F:	drivers/i2c/busses/i2c-cadence.c
 F:	drivers/mmc/host/sdhci-of-arasan.c
 F:	drivers/edac/synopsys_edac.c
-F:	drivers/i2c/busses/i2c-xiic.c
 
 ARM64 PORT (AARCH64 ARCHITECTURE)
 M:	Catalin Marinas <catalin.marinas@arm.com>
@@ -4505,6 +4504,7 @@ L:	linux-media@vger.kernel.org
 T:	git git://linuxtv.org/media_tree.git
 S:	Maintained
 F:	drivers/media/i2c/dw9714.c
+F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt
 
 DONGWOON DW9807 LENS VOICE COIL DRIVER
 M:	Sakari Ailus <sakari.ailus@linux.intel.com>
@@ -4512,6 +4512,7 @@ L:	linux-media@vger.kernel.org
 T:	git git://linuxtv.org/media_tree.git
 S:	Maintained
 F:	drivers/media/i2c/dw9807.c
+F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
 
 DOUBLETALK DRIVER
 M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
@@ -5625,8 +5626,6 @@ F:	lib/fault-inject.c
 
 FBTFT Framebuffer drivers
 M:	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-L:	dri-devel@lists.freedesktop.org
-L:	linux-fbdev@vger.kernel.org
 S:	Maintained
 F:	drivers/staging/fbtft/
 
@@ -6062,7 +6061,7 @@ F:	Documentation/gcc-plugins.txt
 
 GASKET DRIVER FRAMEWORK
 M:	Rob Springer <rspringer@google.com>
-M:	Todd Poynor <toddpoynor@google.com>
+M:	John Joseph <jnjoseph@google.com>
 M:	Ben Chan <benchan@chromium.org>
 S:	Maintained
 F:	drivers/staging/gasket/
@@ -7017,20 +7016,6 @@ F:	drivers/crypto/vmx/vmx.c
 F:	drivers/crypto/vmx/aes*
 F:	drivers/crypto/vmx/ghash*
 F:	drivers/crypto/vmx/ppc-xlate.pl
-
-IBM Power PCI Hotplug Driver for RPA-compliant PPC64 platform
-M:	Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
-L:	linux-pci@vger.kernel.org
-L:	linuxppc-dev@lists.ozlabs.org
-S:	Supported
-F:	drivers/pci/hotplug/rpaphp*
-
-IBM Power IO DLPAR Driver for RPA-compliant PPC64 platform
-M:	Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
-L:	linux-pci@vger.kernel.org
-L:	linuxppc-dev@lists.ozlabs.org
-S:	Supported
-F:	drivers/pci/hotplug/rpadlpar*
 
 IBM ServeRAID RAID DRIVER
 S:	Orphan
@@ -8272,9 +8257,9 @@ F:	drivers/ata/pata_arasan_cf.c
 
 LIBATA PATA DRIVERS
 M:	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-M:	Jens Axboe <axboe@kernel.dk>
+M:	Jens Axboe <kernel.dk>
 L:	linux-ide@vger.kernel.org
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/libata.git
 S:	Maintained
 F:	drivers/ata/pata_*.c
 F:	drivers/ata/ata_generic.c
@@ -8292,7 +8277,7 @@ LIBATA SATA AHCI PLATFORM devices support
 M:	Hans de Goede <hdegoede@redhat.com>
 M:	Jens Axboe <axboe@kernel.dk>
 L:	linux-ide@vger.kernel.org
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/libata.git
 S:	Maintained
 F:	drivers/ata/ahci_platform.c
 F:	drivers/ata/libahci_platform.c
@@ -8308,7 +8293,7 @@ F:	drivers/ata/sata_promise.*
 LIBATA SUBSYSTEM (Serial and Parallel ATA drivers)
 M:	Jens Axboe <axboe@kernel.dk>
 L:	linux-ide@vger.kernel.org
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/libata.git
 S:	Maintained
 F:	drivers/ata/
 F:	include/linux/ata.h
@@ -8316,7 +8301,7 @@ F:	include/linux/libata.h
 F:	Documentation/devicetree/bindings/ata/
 
 LIBLOCKDEP
-M:	Sasha Levin <alexander.levin@microsoft.com>
+M:	Sasha Levin <alexander.levin@verizon.com>
 S:	Maintained
 F:	tools/lib/lockdep/
 
@@ -8992,11 +8977,10 @@ F:	drivers/media/dvb-frontends/cxd2880/*
 F:	drivers/media/spi/cxd2880*
 
 MEDIA DRIVERS FOR DIGITAL DEVICES PCIE DEVICES
-M:	Daniel Scheller <d.scheller.oss@gmail.com>
 L:	linux-media@vger.kernel.org
 W:	https://linuxtv.org
 T:	git git://linuxtv.org/media_tree.git
-S:	Maintained
+S:	Orphan
 F:	drivers/media/pci/ddbridge/*
 
 MEDIA DRIVERS FOR FREESCALE IMX
@@ -9010,6 +8994,13 @@ F:	Documentation/media/v4l-drivers/imx.rst
 F:	drivers/staging/media/imx/
 F:	include/linux/imx-media.h
 F:	include/media/imx.h
+
+MEDIA DRIVER FOR FREESCALE IMX PXP
+M:	Philipp Zabel <p.zabel@pengutronix.de>
+L:	linux-media@vger.kernel.org
+T:	git git://linuxtv.org/media_tree.git
+S:	Maintained
+F:	drivers/media/platform/imx-pxp.[ch]
 
 MEDIA DRIVERS FOR HELENE
 M:	Abylay Ospan <aospan@netup.ru>
@@ -9041,11 +9032,10 @@ S:	Supported
 F:	drivers/media/dvb-frontends/lnbh25*
 
 MEDIA DRIVERS FOR MXL5XX TUNER DEMODULATORS
-M:	Daniel Scheller <d.scheller.oss@gmail.com>
 L:	linux-media@vger.kernel.org
 W:	https://linuxtv.org
 T:	git git://linuxtv.org/media_tree.git
-S:	Maintained
+S:	Orphan
 F:	drivers/media/dvb-frontends/mxl5xx*
 
 MEDIA DRIVERS FOR NETUP PCI UNIVERSAL DVB devices
@@ -9088,7 +9078,7 @@ F:	drivers/media/platform/rcar-fcp.c
 F:	include/media/rcar-fcp.h
 
 MEDIA DRIVERS FOR RENESAS - FDP1
-M:	Kieran Bingham <kieran@bingham.xyz>
+M:	Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 L:	linux-media@vger.kernel.org
 L:	linux-renesas-soc@vger.kernel.org
 T:	git git://linuxtv.org/media_tree.git
@@ -9108,6 +9098,7 @@ F:	drivers/media/platform/rcar-vin/
 
 MEDIA DRIVERS FOR RENESAS - VSP1
 M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+M:	Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 L:	linux-media@vger.kernel.org
 L:	linux-renesas-soc@vger.kernel.org
 T:	git git://linuxtv.org/media_tree.git
@@ -9116,19 +9107,17 @@ F:	Documentation/devicetree/bindings/media/renesas,vsp1.txt
 F:	drivers/media/platform/vsp1/
 
 MEDIA DRIVERS FOR ST STV0910 DEMODULATOR ICs
-M:	Daniel Scheller <d.scheller.oss@gmail.com>
 L:	linux-media@vger.kernel.org
 W:	https://linuxtv.org
 T:	git git://linuxtv.org/media_tree.git
-S:	Maintained
+S:	Orphan
 F:	drivers/media/dvb-frontends/stv0910*
 
 MEDIA DRIVERS FOR ST STV6111 TUNER ICs
-M:	Daniel Scheller <d.scheller.oss@gmail.com>
 L:	linux-media@vger.kernel.org
 W:	https://linuxtv.org
 T:	git git://linuxtv.org/media_tree.git
-S:	Maintained
+S:	Orphan
 F:	drivers/media/dvb-frontends/stv6111*
 
 MEDIA DRIVERS FOR STM32 - DCMI
@@ -9715,6 +9704,13 @@ W:	http://palosaari.fi/linux/
 Q:	http://patchwork.linuxtv.org/project/linux-media/list/
 S:	Maintained
 F:	drivers/media/dvb-frontends/mn88473*
+
+PCI DRIVER FOR MOBIVEIL PCIE IP
+M:	Subrahmanya Lingappa <l.subrahmanya@mobiveil.co.in>
+L:	linux-pci@vger.kernel.org
+S:	Supported
+F:	Documentation/devicetree/bindings/pci/mobiveil-pcie.txt
+F:	drivers/pci/controller/pcie-mobiveil.c
 
 MODULE SUPPORT
 M:	Jessica Yu <jeyu@kernel.org>
@@ -10942,7 +10938,7 @@ M:	Willy Tarreau <willy@haproxy.com>
 M:	Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
 S:	Odd Fixes
 F:	Documentation/auxdisplay/lcd-panel-cgram.txt
-F:	drivers/auxdisplay/panel.c
+F:	drivers/misc/panel.c
 
 PARALLEL PORT SUBSYSTEM
 M:	Sudip Mukherjee <sudipm.mukherjee@gmail.com>
@@ -11130,13 +11126,6 @@ F:	include/uapi/linux/switchtec_ioctl.h
 F:	include/linux/switchtec.h
 F:	drivers/ntb/hw/mscc/
 
-PCI DRIVER FOR MOBIVEIL PCIE IP
-M:	Subrahmanya Lingappa <l.subrahmanya@mobiveil.co.in>
-L:	linux-pci@vger.kernel.org
-S:	Supported
-F:	Documentation/devicetree/bindings/pci/mobiveil-pcie.txt
-F:	drivers/pci/controller/pcie-mobiveil.c
-
 PCI DRIVER FOR MVEBU (Marvell Armada 370 and Armada XP SOC support)
 M:	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 M:	Jason Cooper <jason@lakedaemon.net>
@@ -11170,7 +11159,7 @@ F:	drivers/pci/controller/dwc/pci-exynos.c
 
 PCI DRIVER FOR SYNOPSYS DESIGNWARE
 M:	Jingoo Han <jingoohan1@gmail.com>
-M:	Gustavo Pimentel <gustavo.pimentel@synopsys.com>
+M:	Joao Pinto <Joao.Pinto@synopsys.com>
 L:	linux-pci@vger.kernel.org
 S:	Maintained
 F:	Documentation/devicetree/bindings/pci/designware-pcie.txt
@@ -11203,14 +11192,8 @@ F:	tools/pci/
 
 PCI ENHANCED ERROR HANDLING (EEH) FOR POWERPC
 M:	Russell Currey <ruscur@russell.cc>
-M:	Sam Bobroff <sbobroff@linux.ibm.com>
-M:	Oliver O'Halloran <oohall@gmail.com>
 L:	linuxppc-dev@lists.ozlabs.org
 S:	Supported
-F:	Documentation/PCI/pci-error-recovery.txt
-F:	drivers/pci/pcie/aer.c
-F:	drivers/pci/pcie/dpc.c
-F:	drivers/pci/pcie/err.c
 F:	Documentation/powerpc/eeh-pci-error-recovery.txt
 F:	arch/powerpc/kernel/eeh*.c
 F:	arch/powerpc/platforms/*/eeh*.c
@@ -11368,10 +11351,10 @@ S:	Maintained
 F:	drivers/platform/x86/peaq-wmi.c
 
 PER-CPU MEMORY ALLOCATOR
-M:	Dennis Zhou <dennis@kernel.org>
 M:	Tejun Heo <tj@kernel.org>
 M:	Christoph Lameter <cl@linux.com>
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/dennis/percpu.git
+M:	Dennis Zhou <dennisszhou@gmail.com>
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/percpu.git
 S:	Maintained
 F:	include/linux/percpu*.h
 F:	mm/percpu*.c
@@ -12266,7 +12249,6 @@ F:	Documentation/networking/rds.txt
 
 RDT - RESOURCE ALLOCATION
 M:	Fenghua Yu <fenghua.yu@intel.com>
-M:	Reinette Chatre <reinette.chatre@intel.com>
 L:	linux-kernel@vger.kernel.org
 S:	Supported
 F:	arch/x86/kernel/cpu/intel_rdt*
@@ -13456,8 +13438,9 @@ F:	drivers/i2c/busses/i2c-synquacer.c
 F:	Documentation/devicetree/bindings/i2c/i2c-synquacer.txt
 
 SOCIONEXT UNIPHIER SOUND DRIVER
+M:	Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
 L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
-S:	Orphan
+S:	Maintained
 F:	sound/soc/uniphier/
 
 SOEKRIS NET48XX LED SUPPORT
@@ -13870,7 +13853,7 @@ F:	sound/soc/sti/
 STI CEC DRIVER
 M:	Benjamin Gaignard <benjamin.gaignard@linaro.org>
 S:	Maintained
-F:	drivers/staging/media/st-cec/
+F:	drivers/media/platform/sti/cec/
 F:	Documentation/devicetree/bindings/media/stih-cec.txt
 
 STK1160 USB VIDEO CAPTURE DRIVER
@@ -15919,7 +15902,6 @@ F:	net/x25/
 X86 ARCHITECTURE (32-BIT AND 64-BIT)
 M:	Thomas Gleixner <tglx@linutronix.de>
 M:	Ingo Molnar <mingo@redhat.com>
-M:	Borislav Petkov <bp@alien8.de>
 R:	"H. Peter Anvin" <hpa@zytor.com>
 M:	x86@kernel.org
 L:	linux-kernel@vger.kernel.org
@@ -15947,15 +15929,6 @@ X86 MICROCODE UPDATE SUPPORT
 M:	Borislav Petkov <bp@alien8.de>
 S:	Maintained
 F:	arch/x86/kernel/cpu/microcode/*
-
-X86 MM
-M:	Dave Hansen <dave.hansen@linux.intel.com>
-M:	Andy Lutomirski <luto@kernel.org>
-M:	Peter Zijlstra <peterz@infradead.org>
-L:	linux-kernel@vger.kernel.org
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git x86/mm
-S:	Maintained
-F:	arch/x86/mm/
 
 X86 PLATFORM DRIVERS
 M:	Darren Hart <dvhart@infradead.org>
