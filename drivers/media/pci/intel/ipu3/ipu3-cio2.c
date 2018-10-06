@@ -1433,13 +1433,13 @@ static int cio2_notifier_complete(struct v4l2_async_notifier *notifier)
 	struct cio2_device *cio2 = container_of(notifier, struct cio2_device,
 						notifier);
 	struct sensor_async_subdev *s_asd;
+	struct v4l2_async_subdev *asd;
 	struct cio2_queue *q;
-	unsigned int i, pad;
+	unsigned int pad;
 	int ret;
 
-	for (i = 0; i < notifier->num_subdevs; i++) {
-		s_asd = container_of(cio2->notifier.subdevs[i],
-				     struct sensor_async_subdev, asd);
+	list_for_each_entry(asd, &cio2->notifier.asd_list, asd_list) {
+		s_asd = container_of(asd, struct sensor_async_subdev, asd);
 		q = &cio2->queue[s_asd->csi2.port];
 
 		for (pad = 0; pad < q->sensor->entity.num_pads; pad++)
@@ -1461,7 +1461,7 @@ static int cio2_notifier_complete(struct v4l2_async_notifier *notifier)
 		if (ret) {
 			dev_err(&cio2->pci_dev->dev,
 				"failed to create link for %s\n",
-				cio2->queue[i].sensor->name);
+				q->sensor->name);
 			return ret;
 		}
 	}
@@ -1482,7 +1482,7 @@ static int cio2_fwnode_parse(struct device *dev,
 	struct sensor_async_subdev *s_asd =
 			container_of(asd, struct sensor_async_subdev, asd);
 
-	if (vep->bus_type != V4L2_MBUS_CSI2) {
+	if (vep->bus_type != V4L2_MBUS_CSI2_DPHY) {
 		dev_err(dev, "Only CSI2 bus type is currently supported\n");
 		return -EINVAL;
 	}
@@ -1497,6 +1497,8 @@ static int cio2_notifier_init(struct cio2_device *cio2)
 {
 	int ret;
 
+	v4l2_async_notifier_init(&cio2->notifier);
+
 	ret = v4l2_async_notifier_parse_fwnode_endpoints(
 		&cio2->pci_dev->dev, &cio2->notifier,
 		sizeof(struct sensor_async_subdev),
@@ -1504,7 +1506,7 @@ static int cio2_notifier_init(struct cio2_device *cio2)
 	if (ret < 0)
 		return ret;
 
-	if (!cio2->notifier.num_subdevs)
+	if (list_empty(&cio2->notifier.asd_list))
 		return -ENODEV;	/* no endpoint */
 
 	cio2->notifier.ops = &cio2_async_ops;

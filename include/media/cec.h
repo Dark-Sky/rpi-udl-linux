@@ -63,7 +63,6 @@ struct cec_data {
 	struct delayed_work work;
 	struct completion c;
 	u8 attempts;
-	bool new_initiator;
 	bool blocking;
 	bool completed;
 };
@@ -174,6 +173,7 @@ struct cec_adapter {
 	bool is_configuring;
 	bool is_configured;
 	bool cec_pin_is_high;
+	u8 last_initiator;
 	u32 monitor_all_cnt;
 	u32 monitor_pin_cnt;
 	u32 follower_cnt;
@@ -198,9 +198,7 @@ struct cec_adapter {
 	u16 phys_addrs[15];
 	u32 sequence;
 
-	char device_name[32];
 	char input_phys[32];
-	char input_drv[32];
 };
 
 static inline void *cec_get_drvdata(const struct cec_adapter *adap)

@@ -1590,7 +1590,6 @@ static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node *node)
 
 static int dcmi_graph_init(struct stm32_dcmi *dcmi)
 {
-	struct v4l2_async_subdev **subdevs = NULL;
 	int ret;
 
 	/* Parse the graph to extract a list of subdevice DT nodes. */
@@ -1600,23 +1599,21 @@ static int dcmi_graph_init(struct stm32_dcmi *dcmi)
 		return ret;
 	}
 
-	/* Register the subdevices notifier. */
-	subdevs = devm_kzalloc(dcmi->dev, sizeof(*subdevs), GFP_KERNEL);
-	if (!subdevs) {
+	v4l2_async_notifier_init(&dcmi->notifier);
+
+	ret = v4l2_async_notifier_add_subdev(&dcmi->notifier,
+					     &dcmi->entity.asd);
+	if (ret) {
 		of_node_put(dcmi->entity.node);
-		return -ENOMEM;
+		return ret;
 	}
 
-	subdevs[0] = &dcmi->entity.asd;
-
-	dcmi->notifier.subdevs = subdevs;
-	dcmi->notifier.num_subdevs = 1;
 	dcmi->notifier.ops = &dcmi_graph_notify_ops;
 
 	ret = v4l2_async_notifier_register(&dcmi->v4l2_dev, &dcmi->notifier);
 	if (ret < 0) {
 		dev_err(dcmi->dev, "Notifier registration failed\n");
-		of_node_put(dcmi->entity.node);
+		v4l2_async_notifier_cleanup(&dcmi->notifier);
 		return ret;
 	}
 
@@ -1627,7 +1624,7 @@ static int dcmi_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
 	const struct of_device_id *match = NULL;
-	struct v4l2_fwnode_endpoint ep;
+	struct v4l2_fwnode_endpoint ep = { .bus_type = 0 };
 	struct stm32_dcmi *dcmi;
 	struct vb2_queue *q;
 	struct dma_chan *chan;
@@ -1666,7 +1663,7 @@ static int dcmi_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	if (ep.bus_type == V4L2_MBUS_CSI2) {
+	if (ep.bus_type == V4L2_MBUS_CSI2_DPHY) {
 		dev_err(&pdev->dev, "CSI bus not supported\n");
 		return -ENODEV;
 	}
@@ -1773,7 +1770,7 @@ static int dcmi_probe(struct platform_device *pdev)
 	ret = reset_control_assert(dcmi->rstc);
 	if (ret) {
 		dev_err(&pdev->dev, "Failed to assert the reset line\n");
-		goto err_device_release;
+		goto err_cleanup;
 	}
 
 	usleep_range(3000, 5000);
@@ -1781,7 +1778,7 @@ static int dcmi_probe(struct platform_device *pdev)
 	ret = reset_control_deassert(dcmi->rstc);
 	if (ret) {
 		dev_err(&pdev->dev, "Failed to deassert the reset line\n");
-		goto err_device_release;
+		goto err_cleanup;
 	}
 
 	dev_info(&pdev->dev, "Probe done\n");
@@ -1792,6 +1789,8 @@ static int dcmi_probe(struct platform_device *pdev)
 
 	return 0;
 
+err_cleanup:
+	v4l2_async_notifier_cleanup(&dcmi->notifier);
 err_device_release:
 	video_device_release(dcmi->vdev);
 err_device_unregister:
@@ -1809,6 +1808,7 @@ static int dcmi_remove(struct platform_device *pdev)
 	pm_runtime_disable(&pdev->dev);
 
 	v4l2_async_notifier_unregister(&dcmi->notifier);
+	v4l2_async_notifier_cleanup(&dcmi->notifier);
 	v4l2_device_unregister(&dcmi->v4l2_dev);
 
 	dma_release_channel(dcmi->dma_chan);

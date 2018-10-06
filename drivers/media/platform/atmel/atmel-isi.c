@@ -790,7 +790,7 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
 			struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
-	struct v4l2_fwnode_endpoint ep;
+	struct v4l2_fwnode_endpoint ep = { .bus_type = 0 };
 	int err;
 
 	/* Default settings for ISI */
@@ -1124,7 +1124,6 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
 
 static int isi_graph_init(struct atmel_isi *isi)
 {
-	struct v4l2_async_subdev **subdevs = NULL;
 	int ret;
 
 	/* Parse the graph to extract a list of subdevice DT nodes. */
@@ -1134,23 +1133,20 @@ static int isi_graph_init(struct atmel_isi *isi)
 		return ret;
 	}
 
-	/* Register the subdevices notifier. */
-	subdevs = devm_kzalloc(isi->dev, sizeof(*subdevs), GFP_KERNEL);
-	if (!subdevs) {
+	v4l2_async_notifier_init(&isi->notifier);
+
+	ret = v4l2_async_notifier_add_subdev(&isi->notifier, &isi->entity.asd);
+	if (ret) {
 		of_node_put(isi->entity.node);
-		return -ENOMEM;
+		return ret;
 	}
 
-	subdevs[0] = &isi->entity.asd;
-
-	isi->notifier.subdevs = subdevs;
-	isi->notifier.num_subdevs = 1;
 	isi->notifier.ops = &isi_graph_notify_ops;
 
 	ret = v4l2_async_notifier_register(&isi->v4l2_dev, &isi->notifier);
 	if (ret < 0) {
 		dev_err(isi->dev, "Notifier registration failed\n");
-		of_node_put(isi->entity.node);
+		v4l2_async_notifier_cleanup(&isi->notifier);
 		return ret;
 	}
 
@@ -1303,6 +1299,7 @@ static int atmel_isi_remove(struct platform_device *pdev)
 			isi->fb_descriptors_phys);
 	pm_runtime_disable(&pdev->dev);
 	v4l2_async_notifier_unregister(&isi->notifier);
+	v4l2_async_notifier_cleanup(&isi->notifier);
 	v4l2_device_unregister(&isi->v4l2_dev);
 
 	return 0;
