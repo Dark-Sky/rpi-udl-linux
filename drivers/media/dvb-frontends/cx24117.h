@@ -33,7 +33,7 @@ struct cx24117_config {
 };
 
 #if IS_REACHABLE(CONFIG_DVB_CX24117)
-struct i2c_adapter *cx24117_get_i2c_adapter(struct dvb_frontend *fe);
+extern struct i2c_adapter *cx24117_get_i2c_adapter(struct dvb_frontend *fe);
 extern struct dvb_frontend *cx24117_attach(
 	struct cx24117_config *config,
 	struct i2c_adapter *i2c);

@@ -43,7 +43,6 @@
 #include <linux/uaccess.h>
 #include <linux/mm.h>
 #include <linux/of.h>
-#include <asm/cputype.h>
 #include <soc/bcm2835/raspberrypi-firmware.h>
 
 #define TOTAL_SLOTS (VCHIQ_SLOT_ZERO_SLOTS + 2 * 32)
@@ -86,15 +85,13 @@ static void __iomem *g_regs;
  * VPU firmware, which determines the required alignment of the
  * offsets/sizes in pagelists.
  *
- * Previous VPU firmware looked for a DT "cache-line-size" property in
- * the VCHIQ node and would overwrite it with the actual L2 cache size,
+ * Modern VPU firmware looks for a DT "cache-line-size" property in
+ * the VCHIQ node and will overwrite it with the actual L2 cache size,
  * which the kernel must then respect.  That property was rejected
- * upstream, so we now rely on both sides to "do the right thing" independently
- * of the other. To improve backwards compatibility, this new behaviour is
- * signalled to the firmware by the use of a corrected "reg" property on the
- * relevant Device Tree node.
+ * upstream, so we have to use the VPU firmware's compatibility value
+ * of 32.
  */
-static unsigned int g_cache_line_size;
+static unsigned int g_cache_line_size = 32;
 static struct dma_pool *g_dma_pool;
 static unsigned int g_fragments_size;
 static char *g_fragments_base;
@@ -117,7 +114,8 @@ free_pagelist(struct vchiq_pagelist_info *pagelistinfo,
 int vchiq_platform_init(struct platform_device *pdev, VCHIQ_STATE_T *state)
 {
 	struct device *dev = &pdev->dev;
-	struct rpi_firmware *fw = platform_get_drvdata(pdev);
+	struct vchiq_drvdata *drvdata = platform_get_drvdata(pdev);
+	struct rpi_firmware *fw = drvdata->fw;
 	VCHIQ_SLOT_ZERO_T *vchiq_slot_zero;
 	struct resource *res;
 	void *slot_mem;
@@ -135,17 +133,7 @@ int vchiq_platform_init(struct platform_device *pdev, VCHIQ_STATE_T *state)
 	if (err < 0)
 		return err;
 
-	/*
-	 * The tempting L1_CACHE_BYTES macro doesn't work in the case of
-	 * a kernel built with bcm2835_defconfig running on a BCM2836/7
-	 * processor, hence the need for a runtime check. The dcache line size
-	 * is encoded in one of the coprocessor registers, but there is no
-	 * convenient way to access it short of embedded assembler, hence
-	 * the use of read_cpuid_id(). The following test evaluates to true
-	 * on a BCM2835 showing that it is ARMv6-ish, whereas
-	 * cpu_architecture() will indicate that it is an ARMv7.
-	 */
-	g_cache_line_size = ((read_cpuid_id() & 0x7f000) == 0x7b000) ? 32 : 64;
+	g_cache_line_size = drvdata->cache_line_size;
 	g_fragments_size = 2 * g_cache_line_size;
 
 	/* Allocate space for the channels in coherent memory */

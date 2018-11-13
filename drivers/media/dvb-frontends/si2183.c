@@ -880,7 +880,12 @@ static int si2183_init(struct dvb_frontend *fe)
 		goto err;
 
 	if (dev->fw_loaded) {
-		cmd = si2183_CMD(client, SI2183_RESUME);
+		cmd = SI2183_RESUME;
+
+		if (dev->start_clk_mode == 1)
+				cmd.args[6] = 0x31;	
+
+		cmd = si2183_CMD(client, cmd);
 		if (cmd.ret)
 			goto err;
 
@@ -1499,7 +1504,8 @@ static void si2183_spi_read(struct dvb_frontend *fe, struct ecp3_info *ecp3inf)
 	struct si2183_dev *dev = i2c_get_clientdata(client);
 
 
-	dev->read_properties(client->adapter, ecp3inf->reg, &(ecp3inf->data));
+	if (dev->read_properties)
+		dev->read_properties(client->adapter,ecp3inf->reg, &(ecp3inf->data));
 
 	return ;
 }
@@ -1509,7 +1515,8 @@ static void si2183_spi_write(struct dvb_frontend *fe, struct ecp3_info *ecp3inf)
 	struct i2c_client *client = fe->demodulator_priv;
 	struct si2183_dev *dev = i2c_get_clientdata(client);
 
-	dev->write_properties(client->adapter, ecp3inf->reg, ecp3inf->data);
+	if (dev->write_properties)
+		dev->write_properties(client->adapter,ecp3inf->reg, ecp3inf->data);
 	return ;
 }
 

@@ -59,7 +59,7 @@ struct tas2101_config {
 extern struct dvb_frontend *tas2101_attach(
 	const struct tas2101_config *cfg,
 	struct i2c_adapter *i2c);
-struct i2c_adapter *tas2101_get_i2c_adapter(struct dvb_frontend *fe, int bus);
+extern struct i2c_adapter *tas2101_get_i2c_adapter(struct dvb_frontend *fe, int bus);
 #else
 static inline struct dvb_frontend *tas2101_attach(
 	const struct tas2101_config *cfg,

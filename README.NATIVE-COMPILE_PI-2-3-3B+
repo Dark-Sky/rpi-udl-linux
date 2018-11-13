@@ -8,7 +8,7 @@ THE NEW KERNEL
 
 *****************************************************************************
 
-# Current kernel for the RPi 2/3/3B+ is 4.19.0-rc6
+# Current kernel for the RPi 2/3/3B+ is 4.20.0-rc1
 
 # UPDATE:
 
@@ -17,20 +17,26 @@ THE NEW KERNEL
 
 sudo pacman -S pigz
 
-# Adjust gcc stddef.h header path:
-
-sudo ln -s /usr/lib/gcc/armv7l-unknown-linux-gnueabihf/"YOUR-CURRENT-GCC-VERSION"/include/stddef.h /usr/include/linux/stddef.h
-
 # CLONE REPO & COMPILE KERNEL
 
 git clone https://bitbucket.org/dark-sky/rpi-udl-linux       # Clone repo
 cd rpi-udl-linux
 
 # There is a needed header file stddef.h that has to be installed first in
-# /usr/include/linux before compiling. Lets sanitize and install all of the
-# uapi (including the dvb headers) headers first before compiling the kernel:
+# /usr/include/linux before compiling. It will be installed with the
+# santized header install so lets sanitize and install all of the
+# uapi (including the dvb headers) headers first before compiling the kernel
+# and get it over with:
 
 sudo cp -Rv ./sanitized-headers/include/* /usr/include/
+
+# They have added a new gcc header depend with the 4.20 kernel that does not get picked up
+# in Arch Linux for some reason so lets create a link before we compile so it will not
+# error out:
+
+sudo ln -s /usr/lib/gcc/armv7l-unknown-linux-gnueabihf/YOUR-GCC-VERSION-HERE/include/stdarg.h  /usr/include/linux/stdarg.h
+
+# Compile the kernel
 
 make -j4 bcm2709-udl_defconfig                    # Generate .config file
 make -j4 menuconfig                               # Save and exit
@@ -60,9 +66,9 @@ sudo make install
 
 # DO NOT SKIP THIS. It seems they have fixed this so reverse it or it will cause problems
 
-Edit the /boot/cmdline.txt and remove these 2 options if you have them in the file:
+Edit the /boot/cmdline.txt and remove this option if you have this in the file:
 
-dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
+dwc_otg.fiq_fsm_enable=0
 
 sudo sync
 

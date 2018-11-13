@@ -319,7 +319,7 @@ static int tbs_buffer_count(unsigned int size, unsigned int count)
 {
 	unsigned int maxcount;
 
-	maxcount = (32 * 1024 * 1024) / roundup(size, PAGE_SIZE);
+	maxcount = (8 * 1024 * 1024) / roundup(size, PAGE_SIZE);
 	if (count > maxcount)
 		count = maxcount;
 	return count;

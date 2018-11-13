@@ -778,6 +778,8 @@ static int tbsecp3_frontend_attach(struct tbsecp3_adapter *adapter)
 		si2183_config.rf_in = adapter->nr;
 		si2183_config.RF_switch = NULL;
 		si2183_config.start_clk_mode = 1;
+		si2183_config.read_properties = ecp3_spi_read;
+		si2183_config.write_properties = ecp3_spi_write;
 		memset(&info, 0, sizeof(struct i2c_board_info));
 		strlcpy(info.type, "si2183", I2C_NAME_SIZE);
 
@@ -1143,6 +1145,8 @@ static int tbsecp3_frontend_attach(struct tbsecp3_adapter *adapter)
 		si2183_config.ts_clock_gapped = true;
 		si2183_config.rf_in = adapter->nr;
 		si2183_config.RF_switch = NULL;
+		si2183_config.read_properties = ecp3_spi_read;
+		si2183_config.write_properties = ecp3_spi_write;
 
 		memset(&info, 0, sizeof(struct i2c_board_info));
 		strlcpy(info.type, "si2183", I2C_NAME_SIZE);
@@ -1217,6 +1221,8 @@ static int tbsecp3_frontend_attach(struct tbsecp3_adapter *adapter)
 		si2183_config.ts_clock_gapped = true;
 		si2183_config.rf_in = adapter->nr;
 		si2183_config.RF_switch = RF_switch;
+		si2183_config.read_properties = ecp3_spi_read;
+		si2183_config.write_properties = ecp3_spi_write;
 
 		memset(&info, 0, sizeof(struct i2c_board_info));
 		strlcpy(info.type, "si2183", I2C_NAME_SIZE);
@@ -1369,16 +1375,16 @@ static int tbsecp3_frontend_attach(struct tbsecp3_adapter *adapter)
 	case TBSECP3_BOARD_TBS6909:
 		/*
 	       tmp = tbs_read(TBS_GPIO_BASE, 0x20);
-	       printk("RD 0x20 = %x", tmp);
+	       fprintk("RD 0x20 = %x", tmp);
 	       tbs_write(TBS_GPIO_BASE, 0x20, tmp & 0xfffe);
 	       tmp = tbs_read(TBS_GPIO_BASE, 0x20);
-	       printk("RD 0x20 = %x", tmp);
+	       fprintk("RD 0x20 = %x", tmp);
 
 	       tmp = tbs_read(TBS_GPIO_BASE, 0x24);
-	       printk("RD 0x24 = %x", tmp);
+	       fprintk("RD 0x24 = %x", tmp);
 	       tbs_write(TBS_GPIO_BASE, 0x24, tmp & 0xfffc);
 	       tmp = tbs_read(TBS_GPIO_BASE, 0x24);
-	       printk("RD 0x24 = %x", tmp);
+	       fprintk("RD 0x24 = %x", tmp);
 	       */
 
 		adapter->fe = dvb_attach(mxl58x_attach, i2c, &tbs6909_mxl58x_cfg, adapter->nr);
