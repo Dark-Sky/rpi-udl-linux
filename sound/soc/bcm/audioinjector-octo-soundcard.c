@@ -53,7 +53,7 @@ static int audioinjector_octo_startup(struct snd_pcm_substream *substream)
 	rtd->cpu_dai->driver->capture.channels_min = 8;
 	rtd->cpu_dai->driver->capture.channels_max = 8;
 	rtd->codec_dai->driver->capture.channels_max = 8;
-	
+
 	snd_pcm_hw_constraint_list(substream->runtime, 0,
 				SNDRV_PCM_HW_PARAM_RATE,
 				&audioinjector_octo_constraints);
@@ -186,7 +186,7 @@ static int audioinjector_octo_trigger(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 	gpiod_set_array_value_cansleep(mult_gpios->ndescs, mult_gpios->desc,
-									mult);
+				       NULL, mult);
 
 	return 0;
 }
