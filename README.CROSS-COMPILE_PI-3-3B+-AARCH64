@@ -1,0 +1,80 @@
+* CROSS COMPILE AARCH64 KERNEL ON A X64 SYSTEM FOR THE RPi 3/3B+ RUNNING LINUX *
+
+THIS KERNEL HAS NEW DVB HEADERS. FOLLOW PROCEDURE BELOW TO SANITIZE THE
+UAPI HEADERS FOR USER SPACE APPS AND INSTALL THEM AFTER COMPILING/INSTALLING
+THE NEW KERNEL
+
+********************************************************************************
+
+
+# Current kernel for the RPi 3/3B+ is 4.20.0-rc5
+
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+# FIRST GET THE CROSS COMPILE TOOLCHAIN AND INSTALL IT FROM YOUR REPO
+# ( THIS PART IS A 1 TIME PROCEDURE TO GET IT ON YOUR SYSTEM )
+
+# ubuntu / mint
+
+sudo apt-get update
+sudo apt-get install bc build-essential gcc-aarch64-linux-gnu git unzip libelf-dev libssl-dev
+
+# Arch
+
+sudo pacman -S --needed base-devel
+sudo pacman -S bc git unzip aarch64-linux-gnu-gcc pigz libelf openssl
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+# UPDATE:
+
+# Put your sdcard with the arch-pi OS on it you want to upgrade the kernel in your x64 computer
+# and make sure the BOOT & ROOT partitions are mounted
+
+# CLONE REPO
+
+git clone https://gitlab.com/Dark-Sky/rpi-udl-linux.git     # Clone repo
+
+# COMPILE KERNEL
+
+cd rpi-udl-linux
+make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- DTC_FLAGS="-@ -H epapr" bcmrpi3-udl_defconfig
+make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- DTC_FLAGS="-@ -H epapr" menuconfig
+make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- DTC_FLAGS="-@ -H epapr"
+
+# INSTALL THE KERNEL TO THE SDCARD
+# BACK UP EXISTING KERNEL TO BE SAFE
+
+sudo cp /path-to-sdcard-fat32-partition/kernel8.img /path-to-sdcard-fat32-partition/kernel8.img-sav
+
+# COPY Image AND RENAME TO kernel8.img TO THE SDCARDS FAT32 PARTITION
+
+cp -v arch/arm64/boot/Image /path-to-sdcard-fat32-partition/kernel8.img
+
+# INSTALL THE MODULES TO THE SDCARD'S EXT4 PARTITION
+
+sudo make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_MOD_PATH=/path-to-the-sdcard-ext4-partition/usr modules_install
+
+# INSTALL THE KERNEL BLOBS TO THE SDCARD'S VFAT PARTITION
+
+sudo cp arch/arm64/boot/dts/broadcom/bcm*3-b*.dtb /path-to-sdcard-fat32-partition/
+sudo cp -v arch/arm/boot/dts/overlays/*.dtb* /path-to-sdcard-fat32-partition/overlays/
+sudo cp -v arch/arm/boot/dts/overlays/README /path-to-sdcard-fat32-partition/overlays/
+
+# MAKE SURE kernel=kernel8.img is at the top of /boot/config.txt file
+
+# INSTALL NEW SANITIZED UAPI HEADERS FOR USER SPACE APPS TO SDCARD'S ROOT PARTITION.
+# (THIS WILL INCLUDE THE NEEDED DVB HEADERS)
+
+sudo cp -Rv ./sanitized-headers/include/* /path-to-the-sdcard-ext4-partition/usr/include/
+
+# DO NOT SKIP THIS. It seems they have fixed this so reverse it or it will cause problems
+
+Edit the boot partition cmdline.txt and remove these 2 options if you have them in the file:
+
+dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
+
+sudo sync         # Flush data still in memory to sdcard
+
+Safely remove the sdcard and put in your Raspberry Pi and boot it up.

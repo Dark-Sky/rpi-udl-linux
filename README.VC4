@@ -1,0 +1,29 @@
+Switch back & forth between VC4 and regular on aarch64 on the pi2n/pi2b+
+
+# To enable VC4
+# Disable fbturbo:
+
+sudo mv /etc/X11/xorg.conf.d/99-fbturbo.conf /etc/X11/xorg.conf.d/99-fbturbo.~
+
+# Add this to the bottom of /boot/config.txt
+
+dtoverlay=vc4-kms-v3d
+avoid_warnings=2
+
+## Reboot for all to take effect
+
+# Reverse to revert back to regular:
+
+sudo mv /etc/X11/xorg.conf.d/99-fbturbo.~ /etc/X11/xorg.conf.d/99-fbturbo.conf
+
+## Comment out the lines you added at the bottom of /boot/config.txt
+
+#dtoverlay=vc4-kms-v3d
+#avoid_warnings=2
+
+I kind of like the aarch64. The VC4 plays video lots better than with out it.
+The sound is a little off thru hdmi as it is a work in progress. VC4 creates it's
+own sound devices. Speakers in the headphone jack is supposed to be better.
+Omxplayer and cpu temp readings are not supported as of now.
+
+I never play video on my pi's; I only stream and aarch64 is perfect for that.

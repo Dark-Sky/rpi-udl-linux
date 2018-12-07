@@ -17,6 +17,12 @@ config SND_SOC_CYGNUS
 
 	  If you don't know what to do here, say N.
 
+config SND_BCM2708_SOC_3DLAB_NANO_PLAYER
+	tristate "Support for 3Dlab Nano Player"
+	depends on SND_BCM2708_SOC_I2S || SND_BCM2835_SOC_I2S
+	help
+	  Say Y or M if you want to add support for 3Dlab Nano Player.
+
 config SND_BCM2708_SOC_GOOGLEVOICEHAT_SOUNDCARD
 	tristate "Support for Google voiceHAT soundcard"
 	depends on SND_BCM2708_SOC_I2S || SND_BCM2835_SOC_I2S
@@ -124,12 +130,12 @@ config SND_AUDIOINJECTOR_PI_SOUNDCARD
 	help
 	  Say Y or M if you want to add support for audioinjector.net Pi Hat
 
-#config SND_AUDIOINJECTOR_OCTO_SOUNDCARD
-#	tristate "Support for audioinjector.net Octo channel (Hat) soundcard"
-#	depends on SND_BCM2708_SOC_I2S || SND_BCM2835_SOC_I2S
-#	select SND_SOC_CS42XX8_I2C
-#	help
-#	  Say Y or M if you want to add support for audioinjector.net octo add on
+config SND_AUDIOINJECTOR_OCTO_SOUNDCARD
+	tristate "Support for audioinjector.net Octo channel (Hat) soundcard"
+	depends on SND_BCM2708_SOC_I2S || SND_BCM2835_SOC_I2S
+	select SND_SOC_CS42XX8_I2C
+	help
+	  Say Y or M if you want to add support for audioinjector.net octo add on
 
 config SND_DIGIDAC1_SOUNDCARD
         tristate "Support for Red Rocks Audio DigiDAC1"

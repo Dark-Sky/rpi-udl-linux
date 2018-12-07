@@ -54,8 +54,6 @@ struct snd_rpi_wm8804_drvdata {
 	struct snd_soc_dai_link *dai;
 	/* Required - snd_soc_card name */
 	const char *card_name;
-	/* Optional- Overrides the module paramter */
-	unsigned short auto_shutdown_output;
 	/* Optional DT node names if card info is defined in DT */
 	const char *card_name_dt;
 	const char *dai_name_dt;
@@ -64,50 +62,12 @@ struct snd_rpi_wm8804_drvdata {
 	int (*probe)(struct platform_device *pdev);
 };
 
-static short int auto_shutdown_output;
-module_param(auto_shutdown_output, short, 0660);
-MODULE_PARM_DESC(auto_shutdown_output, "Shutdown SP/DIF output if playback is stopped");
-
 static struct gpio_desc *snd_clk44gpio;
 static struct gpio_desc *snd_clk48gpio;
+static int wm8804_samplerate = 0;
 
 #define CLK_44EN_RATE 22579200UL
 #define CLK_48EN_RATE 24576000UL
-
-static int snd_rpi_wm8804_init(struct snd_soc_pcm_runtime *rtd)
-{
-	struct snd_soc_component *component = rtd->codec_dai->component;
-	int rc;
-
-	pr_debug("%s\n", __func__);
-
-	rc = snd_soc_component_update_bits(component, WM8804_PWRDN, 0x4, 0x0);
-	return rc < 0 ? rc : 0;
-}
-
-static int snd_rpi_wm8804_digi_startup(struct snd_pcm_substream *substream)
-{
-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-	struct snd_soc_component *component = rtd->codec_dai->component;
-	int rc;
-
-	pr_debug("%s\n", __func__);
-
-	rc = snd_soc_component_update_bits(component, WM8804_PWRDN, 0x3c, 0x00);
-	return rc < 0 ? rc : 0;
-}
-
-static void snd_rpi_wm8804_digi_shutdown(struct snd_pcm_substream *substream)
-{
-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-	struct snd_soc_component *component = rtd->codec_dai->component;
-
-	pr_debug("%s %d\n", __func__, auto_shutdown_output);
-
-	if (auto_shutdown_output)
-		snd_soc_component_update_bits(component, WM8804_PWRDN,
-				0x3c, 0x3c);
-}
 
 static unsigned int snd_rpi_wm8804_enable_clock(unsigned int samplerate)
 {
@@ -158,6 +118,12 @@ static int snd_rpi_wm8804_hw_params(struct snd_pcm_substream *substream,
 	struct wm8804_clk_cfg clk_cfg;
 	int samplerate = params_rate(params);
 
+	if (samplerate == wm8804_samplerate)
+		return 0;
+
+	/* clear until all clocks are setup properly */
+	wm8804_samplerate = 0;
+
 	snd_rpi_wm8804_clk_cfg(samplerate, &clk_cfg);
 
 	pr_debug("%s samplerate: %d mclk_freq: %u mclk_div: %u sysclk: %u\n",
@@ -204,11 +170,7 @@ static int snd_rpi_wm8804_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Enable TX output */
-	snd_soc_component_update_bits(component, WM8804_PWRDN, 0x4, 0x0);
-
-	/* Power on */
-	snd_soc_component_update_bits(component, WM8804_PWRDN, 0x9, 0);
+	wm8804_samplerate = samplerate;
 
 	/* set sampling frequency status bits */
 	snd_soc_component_update_bits(component, WM8804_SPDTX4, 0x0f,
@@ -219,8 +181,6 @@ static int snd_rpi_wm8804_hw_params(struct snd_pcm_substream *substream,
 
 static struct snd_soc_ops snd_rpi_wm8804_ops = {
 	.hw_params = snd_rpi_wm8804_hw_params,
-	.startup   = snd_rpi_wm8804_digi_startup,
-	.shutdown  = snd_rpi_wm8804_digi_shutdown,
 };
 
 static struct snd_soc_dai_link snd_justboom_digi_dai[] = {
@@ -233,7 +193,6 @@ static struct snd_soc_dai_link snd_justboom_digi_dai[] = {
 static struct snd_rpi_wm8804_drvdata drvdata_justboom_digi = {
 	.card_name            = "snd_rpi_justboom_digi",
 	.dai                  = snd_justboom_digi_dai,
-	.auto_shutdown_output = 1,
 };
 
 static struct snd_soc_dai_link snd_iqaudio_digi_dai[] = {
@@ -335,8 +294,6 @@ static int snd_rpi_wm8804_probe(struct platform_device *pdev)
 
 		snd_soc_card_set_drvdata(&snd_rpi_wm8804, drvdata);
 
-		if (!dai->init)
-			dai->init = snd_rpi_wm8804_init;
 		if (!dai->ops)
 			dai->ops = &snd_rpi_wm8804_ops;
 		if (!dai->codec_dai_name)
@@ -347,9 +304,6 @@ static int snd_rpi_wm8804_probe(struct platform_device *pdev)
 			dai->dai_fmt = SND_SOC_DAIFMT_I2S |
 				SND_SOC_DAIFMT_NB_NF |
 				SND_SOC_DAIFMT_CBM_CFM;
-
-		if (drvdata->auto_shutdown_output)
-			auto_shutdown_output = 1;
 
 		snd_rpi_wm8804.dai_link = dai;
 		i2s_node = of_parse_phandle(pdev->dev.of_node,

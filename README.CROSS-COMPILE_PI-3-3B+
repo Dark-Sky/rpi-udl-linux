@@ -9,7 +9,7 @@ THE NEW KERNEL
 ********************************************************************************
 
 
-# Current kernel for the RPi 2/3/3B+ is 4.20.0-rc1
+# Current kernel for the RPi 2/3/3B+ is 4.20.0-rc5
 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -49,9 +49,9 @@ export MAKEFLAGS="-j4"           # Change "-j4" to use all of your cpu cores. I 
 # COMPILE KERNEL
 
 cd rpi-udl-linux
-make ARCH=arm CROSS_COMPILE=arm-none-eabi- bcm2709-udl_defconfig     # Generate .config file
-make ARCH=arm CROSS_COMPILE=arm-none-eabi- menuconfig                # Save and exit
-make ARCH=arm CROSS_COMPILE=arm-none-eabi-                           # Compile kernel
+make ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr" bcm2709-udl_defconfig
+make ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr" menuconfig
+make ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr"
 
 # INSTALL THE KERNEL TO THE SDCARD
 
@@ -92,3 +92,4 @@ dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
 sudo sync         # Flush data still in memory to sdcard
 
 Safely remove the sdcard and put in your Raspberry Pi and boot it up.
+

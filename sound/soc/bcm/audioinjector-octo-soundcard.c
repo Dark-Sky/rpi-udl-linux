@@ -133,7 +133,7 @@ static int audioinjector_octo_hw_params(struct snd_pcm_substream *substream,
 
 static int audioinjector_octo_trigger(struct snd_pcm_substream *substream,
 								int cmd){
-	int mult[4];
+	DECLARE_BITMAP(mult, 4);
 
 	memset(mult, 0, sizeof(mult));
 
@@ -149,34 +149,34 @@ static int audioinjector_octo_trigger(struct snd_pcm_substream *substream,
 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
 		switch (audioinjector_octo_rate) {
 		case 96000:
-			mult[3] = 1;
+			__assign_bit(3, mult, 1);
 		case 88200:
-			mult[1] = 1;
-			mult[2] = 1;
+			__assign_bit(1, mult, 1);
+			__assign_bit(2, mult, 1);
 			break;
 		case 48000:
-			mult[3] = 1;
+			__assign_bit(3, mult, 1);
 		case 44100:
-			mult[2] = 1;
+			__assign_bit(2, mult, 1);
 			break;
 		case 32000:
-			mult[3] = 1;
+			__assign_bit(3, mult, 1);
 		case 29400:
-			mult[0] = 1;
-			mult[1] = 1;
+			__assign_bit(0, mult, 1);
+			__assign_bit(1, mult, 1);
 			break;
 		case 24000:
-			mult[3] = 1;
+			__assign_bit(3, mult, 1);
 		case 22050:
-			mult[1] = 1;
+			__assign_bit(1, mult, 1);
 			break;
 		case 16000:
-			mult[3] = 1;
+			__assign_bit(3, mult, 1);
 		case 14700:
-			mult[0] = 1;
+			__assign_bit(0, mult, 1);
 			break;
 		case 8000:
-			mult[3] = 1;
+			__assign_bit(3, mult, 1);
 			break;
 		default:
 			return -EINVAL;

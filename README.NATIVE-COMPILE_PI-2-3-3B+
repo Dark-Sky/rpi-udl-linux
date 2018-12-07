@@ -8,7 +8,7 @@ THE NEW KERNEL
 
 *****************************************************************************
 
-# Current kernel for the RPi 2/3/3B+ is 4.20.0-rc1
+# Current kernel for the RPi 2/3/3B+ is 4.20.0-rc5
 
 # UPDATE:
 
@@ -19,7 +19,7 @@ sudo pacman -S pigz
 
 # CLONE REPO & COMPILE KERNEL
 
-git clone https://bitbucket.org/dark-sky/rpi-udl-linux       # Clone repo
+git clone https://gitlab.com/Dark-Sky/rpi-udl-linux.git       # Clone repo
 cd rpi-udl-linux
 
 # There is a needed header file stddef.h that has to be installed first in
@@ -38,9 +38,9 @@ sudo ln -s /usr/lib/gcc/armv7l-unknown-linux-gnueabihf/YOUR-GCC-VERSION-HERE/inc
 
 # Compile the kernel
 
-make -j4 bcm2709-udl_defconfig                    # Generate .config file
-make -j4 menuconfig                               # Save and exit
-make -j4                                          # Compile kernel
+make -j4 DTC_FLAGS="-@ -H epapr" bcm2709-udl_defconfig
+make -j4 DTC_FLAGS="-@ -H epapr" menuconfig
+make -j4 DTC_FLAGS="-@ -H epapr"
 
 # INSTALL KERNEL & RELATED FILES TO THE SYSTEM
 
