@@ -1,5 +1,15 @@
 * CROSS COMPILE AARCH64 KERNEL ON A X64 SYSTEM FOR THE RPi 3/3B+ RUNNING LINUX *
 
+The 64 bit kernel has no support for omxplayer or checking the cpu temp as
+needed depends has not been ported over. This kernel works fine for streaming
+to the lan with updateDVB either from the rpi desktop or via ssh -Y.
+
+You can however use VC4 hardware decoding and mpv which will be similar to using
+mpv compiled with MMAL. You will be limited to the stream bitrate size just like
+it is with MMAL. Most atsc streams will play well. The sound coming through the 
+hdmi port will be a little off as it is a work in progress. VC4 creates it's
+own sound devices.
+
 THIS KERNEL HAS NEW DVB HEADERS. FOLLOW PROCEDURE BELOW TO SANITIZE THE
 UAPI HEADERS FOR USER SPACE APPS AND INSTALL THEM AFTER COMPILING/INSTALLING
 THE NEW KERNEL
