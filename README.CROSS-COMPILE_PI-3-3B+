@@ -9,7 +9,7 @@ THE NEW KERNEL
 ********************************************************************************
 
 
-# Current kernel for the RPi 2/3/3B+ is 4.20.0-rc5
+# Current kernel for the RPi 2/3/3B+ is 4.20.0-rc6
 
 
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -44,13 +44,14 @@ git clone https://bitbucket.org/dark-sky/rpi-udl-linux     # Clone repo
 # SET UP ENVIORMENTAL VARIABLES (HAS TO BE DONE EACH TIME YOU COMPILE)
 
 export PATH=~/opt/gcc-arm-none-eabi-7-2018-q2-update/bin/:${PATH}
+export MAKEFLAGS="-j4"
 
 # COMPILE KERNEL
 
 cd rpi-udl-linux
-make -j4 ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr" bcm2709-udl_defconfig
-make -j4 ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr" menuconfig
-make -j4 ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr"
+make ARCH=arm CROSS_COMPILE=arm-none-eabi- bcm2709-udl_defconfig
+make ARCH=arm CROSS_COMPILE=arm-none-eabi- menuconfig
+make ARCH=arm CROSS_COMPILE=arm-none-eabi-
 
 # INSTALL THE KERNEL TO THE SDCARD
 
