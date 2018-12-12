@@ -44,14 +44,13 @@ git clone https://bitbucket.org/dark-sky/rpi-udl-linux     # Clone repo
 # SET UP ENVIORMENTAL VARIABLES (HAS TO BE DONE EACH TIME YOU COMPILE)
 
 export PATH=~/opt/gcc-arm-none-eabi-7-2018-q2-update/bin/:${PATH}
-export MAKEFLAGS="-j4"
 
 # COMPILE KERNEL
 
 cd rpi-udl-linux
-make ARCH=arm CROSS_COMPILE=arm-none-eabi- bcm2709-udl_defconfig
-make ARCH=arm CROSS_COMPILE=arm-none-eabi- menuconfig
-make ARCH=arm CROSS_COMPILE=arm-none-eabi-
+make -j4 ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr" bcm2709-udl_defconfig
+make -j4 ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr" menuconfig
+make -j4 ARCH=arm CROSS_COMPILE=arm-none-eabi- DTC_FLAGS="-@ -H epapr"
 
 # INSTALL THE KERNEL TO THE SDCARD
 

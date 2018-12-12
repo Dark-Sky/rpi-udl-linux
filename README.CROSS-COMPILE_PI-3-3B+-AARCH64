@@ -1,5 +1,11 @@
 * CROSS COMPILE AARCH64 KERNEL ON A X64 SYSTEM FOR THE RPi 3/3B+ RUNNING LINUX *
 
+YOU WILL NEED A 64 BIT OS INSTALLED BEFORE INSTALLING THIS KERNEL WHICH IS BEYOND
+THE SCOPE OF THIS GUIDE. Contact darksky or majortom here for help installing
+the 64 bit OS in the Pi in the sky thread:
+
+https://rickcaylor.websitetoolbox.com/categories
+
 The 64 bit kernel has no support for omxplayer or checking the cpu temp as
 needed depends has not been ported over. This kernel works fine for streaming
 to the lan with updateDVB either from the rpi desktop or via ssh -Y.

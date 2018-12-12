@@ -1,12 +1,17 @@
-The 64 bit kernel has no support for omxplayer or checking the cpu temp as
-needed depends has not been ported over. This kernel works fine for streaming
-to the lan with updateDVB either from the rpi desktop or via ssh -Y.
+# VC4 ENABLE / DISABLE FOR THE RPI's 3B/3B+. 64BIT AND 32 BIT
+
+# VC4 HAS NO SUPPORT FOR OMXPLAYER OR IT'S MPGEG2 LICENSE KEY.
 
 You can however use VC4 hardware decoding and mpv which will be similar to using
 mpv compiled with MMAL. You will be limited to the stream bitrate size just like
 it is with MMAL. Most atsc streams will play well. The sound coming through the 
 hdmi port will be a little off as it is a work in progress. VC4 creates it's
 own sound devices.
+
+Also on the aarch64 checking the cpu temp is not supported as needed depends has
+not been ported over. The aarch64 also plays most atsc streams well with mpv.
+This kernel works fine for streaming to the lan with updateDVB either from the 
+rpi desktop or via ssh -Y.
 
 * To switch back & forth between VC4 and regular on aarch64 on the pi3/pi2b+ *
 
@@ -16,11 +21,11 @@ own sound devices.
 sudo mv /etc/X11/xorg.conf.d/99-fbturbo.conf /etc/X11/xorg.conf.d/99-fbturbo.~
 
 # Add this to the bottom of /boot/config.txt and modify the gpu_mem as
-# aarch64 VC4 has it's own video memory equivalent built in (cma=256).
+# VC4 has it's own video memory equivalent built in (cma=256).
 
 gpu_mem=16
 
-dtoverlay=vc4-kms-v3d
+dtoverlay=vc4-kms-v3d, cma=256M
 avoid_warnings=2
 
 ## Reboot for all to take effect
@@ -32,14 +37,10 @@ sudo mv /etc/X11/xorg.conf.d/99-fbturbo.~ /etc/X11/xorg.conf.d/99-fbturbo.conf
 ## Comment out the lines you added at the bottom of /boot/config.txt and restore
 ## the gpu_mem= valuse to it's original state.
 
-gpu_mem=160
+gpu_mem=192
 
-#dtoverlay=vc4-kms-v3d
+#dtoverlay=vc4-kms-v3d, cma=256M
 #avoid_warnings=2
 
-I kind of like the aarch64. The VC4 plays video lots better than with out it.
-The sound is a little off thru hdmi as it is a work in progress. VC4 creates it's
-own sound devices. Speakers in the headphone jack is supposed to be better.
-Omxplayer and cpu temp readings are not supported as of now.
-
-I never play video on my pi's; I only stream and aarch64 is perfect for that.
+On the 32 bit kernel after disabling VC4 and entering your mpeg2 license key
+omxplayer will play just like always.

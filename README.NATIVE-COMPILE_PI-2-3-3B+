@@ -38,9 +38,8 @@ sudo ln -s /usr/lib/gcc/armv7l-unknown-linux-gnueabihf/YOUR-GCC-VERSION-HERE/inc
 
 # Compile the kernel
 
-export MAKEFLAGS="-j4"
-make bcm2709-udl_defconfig
-make menuconfig             # Save and exit
+make -j4 DTC_FLAGS="-@ -H epapr" bcm2709-udl_defconfig
+make -j4 DTC_FLAGS="-@ -H epapr" menuconfig             # Save and exit
 make
 
 # INSTALL KERNEL & RELATED FILES TO THE SYSTEM
