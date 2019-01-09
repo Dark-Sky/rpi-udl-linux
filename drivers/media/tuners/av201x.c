@@ -113,6 +113,7 @@ static void av201x_release(struct dvb_frontend *fe)
 static int av201x_init(struct dvb_frontend *fe)
 {
 	struct av201x_priv *priv = fe->tuner_priv;
+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	int ret;
 	fprintk("");
 
@@ -133,7 +134,10 @@ static int av201x_init(struct dvb_frontend *fe)
 	ret |= av201x_wr(priv, REG_TUNER_CTRL, 0x96);
 
 	msleep(120);
-
+	/* initialize strength statistics, signal to apps that tuner is providing strength stats */
+	c->strength.len = 1;
+	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+	c->strength.stat[0].uvalue = 0;
 	if (ret)
 		fprintk("ERROR");
 	return ret;
@@ -201,8 +205,11 @@ static int av201x_set_params(struct dvb_frontend *fe)
 	msleep(20);
 
 	/* set bandwidth */
-	bw  = c->symbol_rate;
-	bw += ((c->symbol_rate * 10) * 35) / 1000;
+	bw = (c->symbol_rate / 1000) * 135/200;
+	if (c->symbol_rate < 6500000)
+		bw += 6000;
+	bw += 2000;
+	bw *= 108/100;
 	av201x_set_bandwidth(fe, bw);
 
 	/* enable fine tune agc */

@@ -90,6 +90,8 @@ static const struct si2183_command SI2183_SET_DVBT2_SYSTEM	= {{0x14, 0x00, 0x0a,
 static const struct si2183_command SI2183_SET_DVBS_SYSTEM	= {{0x14, 0x00, 0x0a, 0x10, 0x88, 0x00}, 6, 4};
 static const struct si2183_command SI2183_SET_DVBS2_SYSTEM	= {{0x14, 0x00, 0x0a, 0x10, 0x98, 0x00}, 6, 4};
 static const struct si2183_command SI2183_SET_DSS_SYSTEM	= {{0x14, 0x00, 0x0a, 0x10, 0xa8, 0x00}, 6, 4};
+static const struct si2183_command SI2183_SET_AUTO_SYSTEM	= {{0x14, 0x00, 0x0a, 0x10, 0xf8, 0x04}, 6, 4};
+static const struct si2183_command SI2183_SET_L2_CH_SEEK	= {{0x14, 0x00, 0x0a, 0x10, 0xf8, 0x06}, 6, 4};
 static const struct si2183_command SI2183_SET_FER_RESOL		= {{0x14, 0x00, 0x0c, 0x10, 0x12, 0x00}, 6, 4};
 static const struct si2183_command SI2183_SET_SQI_COMPUTATION	= {{0x14, 0x00, 0x0f, 0x10, 0x1e, 0x00}, 6, 4};
 static const struct si2183_command SI2183_SET_TS_PARALLEL_2	= {{0x14, 0x00, 0x15, 0x10, 0xe3, 0x08}, 6, 4};
@@ -1108,6 +1110,10 @@ static int si2183_search(struct dvb_frontend *fe)
 	struct si2183_dev *dev = i2c_get_clientdata(client);
 	struct si2183_command cmd;
 	int ret, i;
+	int max_sr = 65000000;
+	int min_sr = 100000;
+	int try_sr;
+	int locked = 0;
 	u8 tmp[20];
 	enum fe_status status = 0;
 
@@ -1136,8 +1142,18 @@ static int si2183_search(struct dvb_frontend *fe)
 
 		}
 	}
+    /* initialize symbol rate in demod to 18123 */
+	cmd = SI2183_SET_DVBS2_SYMBOLRATE;
+	cmd.args[4] = 0x46;
+	cmd.args[5] = 0xCB;
+	si2183_CMD(client, cmd);
 
-	c->symbol_rate = 45000000;
+	try_sr = max_sr;
+
+	do {
+	fprintk("si2183_search(): try_sr = %d, max_sr = %d", try_sr, max_sr);
+	c->symbol_rate = try_sr;
+
 	if (fe->ops.tuner_ops.set_params) {
 		ret = fe->ops.tuner_ops.set_params(fe);
 	}
@@ -1185,7 +1201,7 @@ static int si2183_search(struct dvb_frontend *fe)
 
 	si2183_cmd(client, "\x14\x00\x08\x03\x03\x00", 6, 4);
 
-	si2183_cmd(client, "\x14\x00\x0a\x10\xf8\x06", 6, 4);
+	si2183_CMD(client, SI2183_SET_L2_CH_SEEK);
 
 	if (!config->warm) {
 		si2183_cmd(client, "\x14\x00\x02\x03\x01\x03", 6, 4);
@@ -1202,7 +1218,7 @@ static int si2183_search(struct dvb_frontend *fe)
 
 	msleep(200);
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 10; i++) {
 		fprintk("1: loop=%d", i);
 
 		cmd = si2183_cmd(client, "\x30\x01", 2, 11);
@@ -1211,10 +1227,10 @@ static int si2183_search(struct dvb_frontend *fe)
 
 		msleep(200);
 	}
-	if (i == 20) {
+	if (i == 10) {
 		fprintk("DVBFE_ALGO_SEARCH_FAILED");
 		config->algo = SI2183_FAILED;
-		return DVBFE_ALGO_SEARCH_FAILED;
+	//	return DVBFE_ALGO_SEARCH_FAILED;
 	}
 
 	msleep(50);
@@ -1231,7 +1247,7 @@ static int si2183_search(struct dvb_frontend *fe)
 
 	msleep(100);
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 10; i++) {
 		fprintk("2: loop=%d", i);
 
 		cmd = si2183_cmd(client, "\x30\x01", 2, 11);
@@ -1240,10 +1256,10 @@ static int si2183_search(struct dvb_frontend *fe)
 
 		msleep(200);
 	}
-	if (i == 20) {
+	if (i == 10) {
 		fprintk("DVBFE_ALGO_SEARCH_FAILED");
 		config->algo = SI2183_FAILED;
-		return DVBFE_ALGO_SEARCH_FAILED;
+	//	return DVBFE_ALGO_SEARCH_FAILED;
 	}
 
 	fprintk("Fine Tune");
@@ -1267,12 +1283,13 @@ static int si2183_search(struct dvb_frontend *fe)
 	cmd.args[5] = tmp[9];
 	si2183_CMD(client, cmd);
 
-	si2183_cmd(client, "\x14\x00\x0a\x10\xf8\x04", 6, 4);
+	/* Si2183_L1_SetProperty: Setting Property 0x100a to 0x04f8(1272) */
+	si2183_CMD(client, SI2183_SET_AUTO_SYSTEM);
 
 	/* dsp restart */
 	si2183_CMD(client, SI2183_DSP_RESET);
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 10; i++) {
 		fprintk("3: loop=%d", i);
 
 		cmd = si2183_cmd(client, "\x87\x01", 2, 8);
@@ -1281,21 +1298,30 @@ static int si2183_search(struct dvb_frontend *fe)
 
 		msleep(100);
 	}
-	if (i == 20) {
+	if (i == 10) {
 		fprintk("DVBFE_ALGO_SEARCH_FAILED");
 		config->algo = SI2183_FAILED;
-		return DVBFE_ALGO_SEARCH_FAILED;
+	//	return DVBFE_ALGO_SEARCH_FAILED;
 	}
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 10; i++) {
 		fprintk("4: loop=%d", i);
 
 		ret = si2183_read_status(fe, &status);
-		if (status & FE_HAS_LOCK)
+		if (status & FE_HAS_LOCK) {
+			locked = 1;
 			break;
 
 		msleep(300);
+		}
 	}
+	fprintk("locked = %d", locked);
+	if (try_sr > 5000000) {
+		try_sr -= 20000000;
+	} else {
+		try_sr -= 2000000;
+	}
+	} while ((try_sr > min_sr) && (!locked));
 
 	/* check if we have a valid signal */
 	if (status & FE_HAS_LOCK) {
@@ -1348,8 +1374,8 @@ static int si2183_get_spectrum_scan(struct dvb_frontend *fe, struct dvb_fe_spect
 		}
 	} else { // Satellite
 		p->frequency		= 0;
-		p->bandwidth_hz		= 1000;
-		p->symbol_rate		= 1000;
+		p->bandwidth_hz		= 4000;
+		p->symbol_rate		= 4000;
 		p->delivery_system	= SYS_DVBS;
 		p->modulation		= QPSK;
 
@@ -1552,7 +1578,8 @@ static const struct dvb_frontend_ops si2183_ops = {
 	},
 	.extended_info = {
 		.extended_caps	= FE_CAN_SPECTRUMSCAN |
-				  FE_CAN_IQ
+				  FE_CAN_IQ|
+				  FE_CAN_BLINDSEARCH
 	},
 
 	.get_tune_settings	= si2183_get_tune_settings,
