@@ -1,13 +1,13 @@
 # THIS KERNEL IS NOW COMPATABLE WITH THE PI 3B+
-# THIS KERNEL NOW HAS SUPPORT FOR AARCH64 & VC4 ON THE PI3B/PI3B+
 
-# Current kernel for the RPi 2/3/3B+ is 4.20.0-rc6
+# Current kernel for the RPi 2/3B/3B+ is 5.0.0-rc1
+
 Majortom's & DarkSky's repository based off of V4L media_tree,
 powARman's saa716x work, and Updatelee's work. With out 
 Updatelees's hard work this would not be possible; Thanks UDL!
 
 This is a modified kernel source for use with the Raspberry
-Pi 2, 3 & 3B+ that is used in our custom Arch Raspberry Pi image.
+Pi 2, 3B & 3B+ that is used in our custom Arch Raspberry Pi image.
 
 This kernel allows for blind scanning and playing higher bitrate
 feeds from FTA satellite streams using Updatelee's program 
@@ -18,9 +18,6 @@ updateDVB. It is also excellent for ATSC use.
 
 SEE README.NATIVE-COMPILE_PI-2-3-3B+ FOR COMPILING NATIVE ON THE RPI 2/3
 SEE README.CROSS-COMPILE_PI-2-3-3B+ FOR CROSS-COMPILING ON A X64 DESKTOP
-SEE README.NATIVE-COMPILE_PI-3-3B+-AARCH64 FOR CROSS-COMPILING ON A X64 DESKTOP
-SEE README.CROSS-COMPILE_PI-3-3B+-AARCH64 FOR CROSS-COMPILING ON A X64 DESKTOP
-SEE README.VC4 TO ENABLE/DISABLE VC4 ON ON THE PI'S 3B/3B+ INCLUDING AARCH64
 
 # Tested with:
 
