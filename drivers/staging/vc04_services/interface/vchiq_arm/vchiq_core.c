@@ -2246,8 +2246,9 @@ vchiq_init_state(struct vchiq_state *state, struct vchiq_slot_zero *slot_zero)
 	remote_event_create(&local->sync_release);
 
 	/* At start-of-day, the slot is empty and available */
-	((struct vchiq_header *)SLOT_DATA_FROM_INDEX(state, local->slot_sync))->msgid
-		= VCHIQ_MSGID_PADDING;
+	((struct vchiq_header *)
+		SLOT_DATA_FROM_INDEX(state, local->slot_sync))->msgid =
+							VCHIQ_MSGID_PADDING;
 	remote_event_signal_local(state, &local->sync_release);
 
 	local->debug[DEBUG_ENTRIES] = DEBUG_MAX;
