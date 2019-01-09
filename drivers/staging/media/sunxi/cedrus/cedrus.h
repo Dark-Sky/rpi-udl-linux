@@ -143,7 +143,7 @@ static inline dma_addr_t cedrus_dst_buf_addr(struct cedrus_ctx *ctx,
 					     int index, unsigned int plane)
 {
 	struct vb2_buffer *buf;
- 
+
 	if (index < 0)
 		return 0;
 
