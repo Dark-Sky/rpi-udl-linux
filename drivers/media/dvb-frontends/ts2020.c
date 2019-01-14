@@ -26,6 +26,7 @@
 
 #define TS2020_XTAL_FREQ   27000 /* in kHz */
 #define FREQ_OFFSET_LOW_SYM_RATE 3000
+#define TS2020_LOOP_THROUGH 1 /* RF_BYPASS_EN enable IF Loop by default, set to 0 to disable and conserve power */
 
 struct ts2020_priv {
 	struct i2c_client *client;
@@ -139,7 +140,7 @@ static int ts2020_init(struct dvb_frontend *fe)
 
 		regmap_write(priv->regmap, 0x42, u8tmp);
 
-		if (priv->loop_through)
+		if (TS2020_LOOP_THROUGH)
 			u8tmp = 0xec;
 		else
 			u8tmp = 0x6c;
@@ -671,7 +672,7 @@ static int ts2020_probe(struct i2c_client *client,
 		if (ret)
 			goto err_regmap_exit;
 
-		if (dev->loop_through)
+		if (TS2020_LOOP_THROUGH)
 			u8tmp = 0xec;
 		else
 			u8tmp = 0x6c;
