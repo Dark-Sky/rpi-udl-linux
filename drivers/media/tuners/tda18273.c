@@ -2128,10 +2128,10 @@ static void tda18273_release(struct dvb_frontend *fe)
 
 static struct dvb_tuner_ops tda18273_ops = {
 	.info = {
-		.name		= "TDA18273 Silicon Tuner",
-		.frequency_min  =  42000000,
-		.frequency_max  = 870000000,
-		.frequency_step	= 50000,
+		.name			= "TDA18273 Silicon Tuner",
+		.frequency_min_hz	=  42 * MHz,
+		.frequency_max_hz	= 870 * MHz,
+		.frequency_step_hz	= 5 * kHz,
 	},
 	.init			= tda18273_init,
 //	.sleep			= tda18273_sleep,
