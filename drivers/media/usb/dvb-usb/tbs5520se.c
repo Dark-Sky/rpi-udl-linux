@@ -15,11 +15,11 @@
 #include "si2157.h"
 #include "av201x.h"
 
-#define TBS5520se_READ_MSG 0
-#define TBS5520se_WRITE_MSG 1
+#define TBS5520SE_READ_MSG 0
+#define TBS5520SE_WRITE_MSG 1
 
-#define TBS5520se_RC_QUERY (0x1a00)
-#define TBS5520se_VOLTAGE_CTRL (0x1800)
+#define TBS5520SE_RC_QUERY (0x1a00)
+#define TBS5520SE_VOLTAGE_CTRL (0x1800)
 
 struct tbs5520se_state {
 	struct i2c_client *i2c_client_demod;
@@ -47,19 +47,19 @@ static int tbs5520se_op_rw(struct usb_device *dev, u8 request, u16 value,
 	int ret;
 	void *u8buf;
 
-	unsigned int pipe = (flags == TBS5520se_READ_MSG) ?
+	unsigned int pipe = (flags == TBS5520SE_READ_MSG) ?
 			usb_rcvctrlpipe(dev, 0) : usb_sndctrlpipe(dev, 0);
-	u8 request_type = (flags == TBS5520se_READ_MSG) ? USB_DIR_IN : USB_DIR_OUT;
+	u8 request_type = (flags == TBS5520SE_READ_MSG) ? USB_DIR_IN : USB_DIR_OUT;
 	u8buf = kmalloc(len, GFP_KERNEL);
 	if (!u8buf)
 		return -ENOMEM;
 
-	if (flags == TBS5520se_WRITE_MSG)
+	if (flags == TBS5520SE_WRITE_MSG)
 		memcpy(u8buf, data, len);
 	ret = usb_control_msg(dev, pipe, request, request_type | USB_TYPE_VENDOR,
 				value, index , u8buf, len, 2000);
 
-	if (flags == TBS5520se_READ_MSG)
+	if (flags == TBS5520SE_READ_MSG)
 		memcpy(data, u8buf, len);
 	kfree(u8buf);
 	return ret;
@@ -87,10 +87,10 @@ static int tbs5520se_i2c_transfer(struct i2c_adapter *adap,
 		buf6[2] = msg[0].buf[0];
 
 		tbs5520se_op_rw(d->udev, 0x90, 0, 0,
-					buf6, 3, TBS5520se_WRITE_MSG);
+					buf6, 3, TBS5520SE_WRITE_MSG);
 		//msleep(5);
 		tbs5520se_op_rw(d->udev, 0x91, 0, 0,
-					inbuf, buf6[0], TBS5520se_READ_MSG);
+					inbuf, buf6[0], TBS5520SE_READ_MSG);
 		memcpy(msg[1].buf, inbuf, msg[1].len);
 
 		break;
@@ -106,32 +106,32 @@ static int tbs5520se_i2c_transfer(struct i2c_adapter *adap,
 					buf6[2+i] = msg[0].buf[i];//register
 				}
 				tbs5520se_op_rw(d->udev, 0x80, 0, 0,
-					buf6, msg[0].len+2, TBS5520se_WRITE_MSG);
+					buf6, msg[0].len+2, TBS5520SE_WRITE_MSG);
 			} else {
 				buf6[0] = msg[0].len;//length
 				buf6[1] = (msg[0].addr<<1) | 0x01;//addr
 				tbs5520se_op_rw(d->udev, 0x93, 0, 0,
-						buf6, 2, TBS5520se_WRITE_MSG);
+						buf6, 2, TBS5520SE_WRITE_MSG);
 				//msleep(5);
 				tbs5520se_op_rw(d->udev, 0x91, 0, 0,
-					inbuf, buf6[0], TBS5520se_READ_MSG);
+					inbuf, buf6[0], TBS5520SE_READ_MSG);
 				memcpy(msg[0].buf, inbuf, msg[0].len);
 			}
 			//msleep(3);
 		break;
-		case (TBS5520se_VOLTAGE_CTRL):
+		case (TBS5520SE_VOLTAGE_CTRL):
 			buf6[0] = 3;
 			buf6[1] = msg[0].buf[0];
 			tbs5520se_op_rw(d->udev, 0x8a, 0, 0,
-					buf6, 2, TBS5520se_WRITE_MSG);
+					buf6, 2, TBS5520SE_WRITE_MSG);
 			break;
-		case (TBS5520se_RC_QUERY):
+		case (TBS5520SE_RC_QUERY):
 			tbs5520se_op_rw(d->udev, 0xb8, 0, 0,
-					buf6, 4, TBS5520se_READ_MSG);
+					buf6, 4, TBS5520SE_READ_MSG);
 			msg[0].buf[0] = buf6[2];
 			msg[0].buf[1] = buf6[3];
 			//msleep(3);
-			//info("TBS5520se_RC_QUERY %x %x %x %x\n",
+			//info("TBS5520SE_RC_QUERY %x %x %x %x\n",
 			//		buf6[0],buf6[1],buf6[2],buf6[3]);
 			break;
 		}
@@ -159,7 +159,7 @@ static int tbs5520se_set_voltage(struct dvb_frontend *fe,
 	static u8 command_13v[1] = {0x00};
 	static u8 command_18v[1] = {0x01};
 	struct i2c_msg msg[] = {
-		{.addr = TBS5520se_VOLTAGE_CTRL, .flags = 0,
+		{.addr = TBS5520SE_VOLTAGE_CTRL, .flags = 0,
 			.buf = command_13v, .len = 1},
 	};
 
@@ -185,9 +185,9 @@ static int tbs5520se_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
 		ibuf[1]=0xa0;//eeprom addr
 		ibuf[2]=i;//register
 		ret = tbs5520se_op_rw(d->udev, 0x90, 0, 0,
-					ibuf, 3, TBS5520se_WRITE_MSG);
+					ibuf, 3, TBS5520SE_WRITE_MSG);
 		ret = tbs5520se_op_rw(d->udev, 0x91, 0, 0,
-					ibuf, 1, TBS5520se_READ_MSG);
+					ibuf, 1, TBS5520SE_READ_MSG);
 			if (ret < 0) {
 				err("read eeprom failed.");
 				return -1;
@@ -253,11 +253,11 @@ static int tbs5520se_frontend_attach(struct dvb_usb_adapter *adap)
 
 	/* terrestrial tuner */
 	memset(adap->fe_adap[0].fe->ops.delsys, 0, MAX_DELSYS);
-	adap->fe_adap[0].fe->ops.delsys[0] = SYS_DVBC_ANNEX_A;
-	adap->fe_adap[0].fe->ops.delsys[1] = SYS_DVBC_ANNEX_B;
-	adap->fe_adap[0].fe->ops.delsys[2] = SYS_ISDBT;
-	adap->fe_adap[0].fe->ops.delsys[3] = SYS_DVBT;
-	adap->fe_adap[0].fe->ops.delsys[4] = SYS_DVBT2;
+	adap->fe_adap[0].fe->ops.delsys[0] = SYS_DVBT;
+	adap->fe_adap[0].fe->ops.delsys[1] = SYS_DVBT2;
+	adap->fe_adap[0].fe->ops.delsys[2] = SYS_DVBC_ANNEX_A;
+	adap->fe_adap[0].fe->ops.delsys[3] = SYS_ISDBT;
+	adap->fe_adap[0].fe->ops.delsys[4] = SYS_DVBC_ANNEX_B;
 
 	/* attach ter tuner */
 	memset(&si2157_config, 0, sizeof(si2157_config));
@@ -284,9 +284,9 @@ static int tbs5520se_frontend_attach(struct dvb_usb_adapter *adap)
 	st->i2c_client_tuner = client_tuner;
 
 	memset(adap->fe_adap[0].fe2->ops.delsys, 0, MAX_DELSYS);
-	adap->fe_adap[0].fe2->ops.delsys[0] = SYS_DSS;
-	adap->fe_adap[0].fe2->ops.delsys[1] = SYS_DVBS;
-	adap->fe_adap[0].fe2->ops.delsys[2] = SYS_DVBS2;
+	adap->fe_adap[0].fe2->ops.delsys[0] = SYS_DVBS;
+	adap->fe_adap[0].fe2->ops.delsys[1] = SYS_DVBS2;
+	adap->fe_adap[0].fe2->ops.delsys[2] = SYS_DSS;
 	adap->fe_adap[0].fe2->id = 1;
 
 	if (dvb_attach(av201x_attach, adap->fe_adap[0].fe2, &tbs5520se_av201x_cfg,
@@ -297,7 +297,7 @@ static int tbs5520se_frontend_attach(struct dvb_usb_adapter *adap)
 		buf[0] = 1;
 		buf[1] = 0;
 		tbs5520se_op_rw(d->udev, 0x8a, 0, 0,
-					buf, 2, TBS5520se_WRITE_MSG);
+					buf, 2, TBS5520SE_WRITE_MSG);
 
 		adap->fe_adap[0].fe2->ops.set_voltage = tbs5520se_set_voltage;
 
@@ -306,11 +306,11 @@ static int tbs5520se_frontend_attach(struct dvb_usb_adapter *adap)
 	buf[0] = 0;
 	buf[1] = 0;
 	tbs5520se_op_rw(d->udev, 0xb7, 0, 0,
-			buf, 2, TBS5520se_WRITE_MSG);
+			buf, 2, TBS5520SE_WRITE_MSG);
 	buf[0] = 8;
 	buf[1] = 1;
 	tbs5520se_op_rw(d->udev, 0x8a, 0, 0,
-			buf, 2, TBS5520se_WRITE_MSG);
+			buf, 2, TBS5520SE_WRITE_MSG);
 
 	strlcpy(adap->fe_adap[0].fe->ops.info.name,d->props.devices[0].name,52);
 	strcat(adap->fe_adap[0].fe->ops.info.name," DVB-T/T2/C/C2/ISDB-T");
@@ -352,15 +352,15 @@ static int tbs5520se_load_firmware(struct usb_device *dev,
 	p = kmalloc(fw->size, GFP_KERNEL);
 	reset = 1;
 	/*stop the CPU*/
-	tbs5520se_op_rw(dev, 0xa0, 0x7f92, 0, &reset, 1, TBS5520se_WRITE_MSG);
-	tbs5520se_op_rw(dev, 0xa0, 0xe600, 0, &reset, 1, TBS5520se_WRITE_MSG);
+	tbs5520se_op_rw(dev, 0xa0, 0x7f92, 0, &reset, 1, TBS5520SE_WRITE_MSG);
+	tbs5520se_op_rw(dev, 0xa0, 0xe600, 0, &reset, 1, TBS5520SE_WRITE_MSG);
 
 	if (p != NULL) {
 		memcpy(p, fw->data, fw->size);
 		for (i = 0; i < fw->size; i += 0x40) {
 			b = (u8 *) p + i;
 			if (tbs5520se_op_rw(dev, 0xa0, i, 0, b , 0x40,
-					TBS5520se_WRITE_MSG) != 0x40) {
+					TBS5520SE_WRITE_MSG) != 0x40) {
 				err("error while transferring firmware");
 				ret = -EINVAL;
 				break;
@@ -369,12 +369,12 @@ static int tbs5520se_load_firmware(struct usb_device *dev,
 		/* restart the CPU */
 		reset = 0;
 		if (ret || tbs5520se_op_rw(dev, 0xa0, 0x7f92, 0, &reset, 1,
-					TBS5520se_WRITE_MSG) != 1) {
+					TBS5520SE_WRITE_MSG) != 1) {
 			err("could not restart the USB controller CPU.");
 			ret = -EINVAL;
 		}
 		if (ret || tbs5520se_op_rw(dev, 0xa0, 0xe600, 0, &reset, 1,
-					TBS5520se_WRITE_MSG) != 1) {
+					TBS5520SE_WRITE_MSG) != 1) {
 			err("could not restart the USB controller CPU.");
 			ret = -EINVAL;
 		}
