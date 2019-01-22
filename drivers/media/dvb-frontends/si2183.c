@@ -168,6 +168,9 @@ static int si2183_cmd_execute_unlocked(struct i2c_client *client,
 	struct si2183_command o_cmd = *cmd;
 	int ret;
 	unsigned long timeout;
+	bool debug_state = si2183_debug;
+	// minimize noise
+	si2183_debug = false;
 
 	if (cmd->wlen) {
 		if (si2183_debug)
@@ -214,6 +217,7 @@ static int si2183_cmd_execute_unlocked(struct i2c_client *client,
 			fprintk("R: %*ph", cmd->rlen, cmd->args);
 	}
 
+	si2183_debug = debug_state;
 	return 0;
 w_err:
 	fprintk("W: failed=%d", ret);
