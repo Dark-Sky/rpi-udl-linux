@@ -218,20 +218,13 @@ static int adv748x_write_regs(struct adv748x_state *state,
 {
 	int ret;
 
-	while (regs->page != ADV748X_PAGE_EOR) {
-		if (regs->page == ADV748X_PAGE_WAIT) {
-			msleep(regs->value);
-		} else {
-			ret = adv748x_write(state, regs->page, regs->reg,
-				      regs->value);
-			if (ret < 0) {
-				adv_err(state,
-					"Error regs page: 0x%02x reg: 0x%02x\n",
-					regs->page, regs->reg);
-				return ret;
-			}
+	for (; regs->page != ADV748X_PAGE_EOR; regs++) {
+		ret = adv748x_write(state, regs->page, regs->reg, regs->value);
+		if (ret < 0) {
+			adv_err(state, "Error regs page: 0x%02x reg: 0x%02x\n",
+				regs->page, regs->reg);
+			return ret;
 		}
-		regs++;
 	}
 
 	return 0;
@@ -254,7 +247,7 @@ static int adv748x_power_up_tx(struct adv748x_csi2 *tx)
 	adv748x_write_check(state, page, 0x00, 0xa0 | tx->num_lanes, &ret);
 
 	/* ADI Required Write */
-	if (is_txa(tx)) {
+	if (tx->src == &state->hdmi.sd) {
 		adv748x_write_check(state, page, 0xdb, 0x10, &ret);
 		adv748x_write_check(state, page, 0xd6, 0x07, &ret);
 	} else {
@@ -335,6 +328,51 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
 /* -----------------------------------------------------------------------------
  * Media Operations
  */
+static int adv748x_link_setup(struct media_entity *entity,
+			      const struct media_pad *local,
+			      const struct media_pad *remote, u32 flags)
+{
+	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+	struct adv748x_state *state = v4l2_get_subdevdata(sd);
+	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+	bool enable = flags & MEDIA_LNK_FL_ENABLED;
+	u8 io10_mask = ADV748X_IO_10_CSI1_EN |
+		       ADV748X_IO_10_CSI4_EN |
+		       ADV748X_IO_10_CSI4_IN_SEL_AFE;
+	u8 io10 = 0;
+
+	/* Refuse to enable multiple links to the same TX at the same time. */
+	if (enable && tx->src)
+		return -EINVAL;
+
+	/* Set or clear the source (HDMI or AFE) and the current TX. */
+	if (rsd == &state->afe.sd)
+		state->afe.tx = enable ? tx : NULL;
+	else
+		state->hdmi.tx = enable ? tx : NULL;
+
+	tx->src = enable ? rsd : NULL;
+
+	if (state->afe.tx) {
+		/* AFE Requires TXA enabled, even when output to TXB */
+		io10 |= ADV748X_IO_10_CSI4_EN;
+		if (is_txa(tx))
+			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
+		else
+			io10 |= ADV748X_IO_10_CSI1_EN;
+	}
+
+	if (state->hdmi.tx)
+		io10 |= ADV748X_IO_10_CSI4_EN;
+
+	return io_clrset(state, ADV748X_IO_10, io10_mask, io10);
+}
+
+static const struct media_entity_operations adv748x_tx_media_ops = {
+	.link_setup	= adv748x_link_setup,
+	.link_validate	= v4l2_subdev_link_validate,
+};
 
 static const struct media_entity_operations adv748x_media_ops = {
 	.link_validate = v4l2_subdev_link_validate,
@@ -344,18 +382,8 @@ static const struct media_entity_operations adv748x_media_ops = {
  * HW setup
  */
 
-static const struct adv748x_reg_value adv748x_sw_reset[] = {
-
-	{ADV748X_PAGE_IO, 0xff, 0xff},	/* SW reset */
-	{ADV748X_PAGE_WAIT, 0x00, 0x05},/* delay 5 */
-	{ADV748X_PAGE_IO, 0x01, 0x76},	/* ADI Required Write */
-	{ADV748X_PAGE_IO, 0xf2, 0x01},	/* Enable I2C Read Auto-Increment */
-	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
-};
-
-/* Supported Formats For Script Below */
-/* - 01-29 HDMI to MIPI TxA CSI 4-Lane - RGB888: */
-static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
+/* Initialize CP Core with RGB888 format. */
+static const struct adv748x_reg_value adv748x_init_hdmi[] = {
 	/* Disable chip powerdown & Enable HDMI Rx block */
 	{ADV748X_PAGE_IO, 0x00, 0x40},
 
@@ -399,10 +427,8 @@ static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
 	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
 };
 
-/* 02-01 Analog CVBS to MIPI TX-B CSI 1-Lane - */
-/* Autodetect CVBS Single Ended In Ain 1 - MIPI Out */
-static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
-
+/* Initialize AFE core with YUV8 format. */
+static const struct adv748x_reg_value adv748x_init_afe[] = {
 	{ADV748X_PAGE_IO, 0x00, 0x30},	/* Disable chip powerdown Rx */
 	{ADV748X_PAGE_IO, 0xf2, 0x01},	/* Enable I2C Read Auto-Increment */
 
@@ -432,12 +458,33 @@ static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
 	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
 };
 
+static int adv748x_sw_reset(struct adv748x_state *state)
+{
+	int ret;
+
+	ret = io_write(state, ADV748X_IO_REG_FF, ADV748X_IO_REG_FF_MAIN_RESET);
+	if (ret)
+		return ret;
+
+	usleep_range(5000, 6000);
+
+	/* Disable CEC Wakeup from power-down mode */
+	ret = io_clrset(state, ADV748X_IO_REG_01, ADV748X_IO_REG_01_PWRDN_MASK,
+			ADV748X_IO_REG_01_PWRDNB);
+	if (ret)
+		return ret;
+
+	/* Enable I2C Read Auto-Increment for consecutive reads */
+	return io_write(state, ADV748X_IO_REG_F2,
+			ADV748X_IO_REG_F2_READ_AUTO_INC);
+}
+
 static int adv748x_reset(struct adv748x_state *state)
 {
 	int ret;
 	u8 regval = 0;
 
-	ret = adv748x_write_regs(state, adv748x_sw_reset);
+	ret = adv748x_sw_reset(state);
 	if (ret < 0)
 		return ret;
 
@@ -445,19 +492,18 @@ static int adv748x_reset(struct adv748x_state *state)
 	if (ret < 0)
 		return ret;
 
-	/* Init and power down TXA */
-	ret = adv748x_write_regs(state, adv748x_init_txa_4lane);
+	/* Initialize CP and AFE cores. */
+	ret = adv748x_write_regs(state, adv748x_init_hdmi);
 	if (ret)
 		return ret;
 
+	ret = adv748x_write_regs(state, adv748x_init_afe);
+	if (ret)
+		return ret;
+
+	/* Reset TXA and TXB */
 	adv748x_tx_power(&state->txa, 1);
 	adv748x_tx_power(&state->txa, 0);
-
-	/* Init and power down TXB */
-	ret = adv748x_write_regs(state, adv748x_init_txb_1lane);
-	if (ret)
-		return ret;
-
 	adv748x_tx_power(&state->txb, 1);
 	adv748x_tx_power(&state->txb, 0);
 
@@ -520,7 +566,8 @@ void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
 		state->client->addr, ident);
 
 	sd->entity.function = function;
-	sd->entity.ops = &adv748x_media_ops;
+	sd->entity.ops = is_tx(adv748x_sd_to_csi2(sd)) ?
+			 &adv748x_tx_media_ops : &adv748x_media_ops;
 }
 
 static int adv748x_parse_csi2_lanes(struct adv748x_state *state,

@@ -934,7 +934,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
 		/* sync buffers */
 		for (plane = 0; plane < vb->num_planes; ++plane)
 			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-		vb->synced = false;
+		vb->synced = 0;
 	}
 
 	spin_lock_irqsave(&q->done_lock, flags);
@@ -1041,6 +1041,7 @@ static int __prepare_userptr(struct vb2_buffer *vb)
 		if (vb->planes[plane].mem_priv) {
 			if (!reacquired) {
 				reacquired = true;
+				vb->copied_timestamp = 0;
 				call_void_vb_qop(vb, buf_cleanup, vb);
 			}
 			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
@@ -1165,6 +1166,7 @@ static int __prepare_dmabuf(struct vb2_buffer *vb)
 
 		if (!reacquired) {
 			reacquired = true;
+			vb->copied_timestamp = 0;
 			call_void_vb_qop(vb, buf_cleanup, vb);
 		}
 
@@ -1313,8 +1315,8 @@ static int __buf_prepare(struct vb2_buffer *vb)
 	for (plane = 0; plane < vb->num_planes; ++plane)
 		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
 
-	vb->synced = true;
-	vb->prepared = true;
+	vb->synced = 1;
+	vb->prepared = 1;
 	vb->state = orig_state;
 
 	return 0;
@@ -1802,7 +1804,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
 	}
 
 	call_void_vb_qop(vb, buf_finish, vb);
-	vb->prepared = false;
+	vb->prepared = 0;
 
 	if (pindex)
 		*pindex = vb->index;
@@ -1926,12 +1928,12 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
 			for (plane = 0; plane < vb->num_planes; ++plane)
 				call_void_memop(vb, finish,
 						vb->planes[plane].mem_priv);
-			vb->synced = false;
+			vb->synced = 0;
 		}
 
 		if (vb->prepared) {
 			call_void_vb_qop(vb, buf_finish, vb);
-			vb->prepared = false;
+			vb->prepared = 0;
 		}
 		__vb2_dqbuf(vb);
 
@@ -1942,6 +1944,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
 		if (vb->request)
 			media_request_put(vb->request);
 		vb->request = NULL;
+		vb->copied_timestamp = 0;
 	}
 }
 
@@ -2288,6 +2291,8 @@ __poll_t vb2_core_poll(struct vb2_queue *q, struct file *file,
 	if (q->is_output && !(req_events & (EPOLLOUT | EPOLLWRNORM)))
 		return 0;
 
+	poll_wait(file, &q->done_wq, wait);
+
 	/*
 	 * Start file I/O emulator only if streaming API has not been used yet.
 	 */
@@ -2339,8 +2344,6 @@ __poll_t vb2_core_poll(struct vb2_queue *q, struct file *file,
 		 */
 		if (q->last_buffer_dequeued)
 			return EPOLLIN | EPOLLRDNORM;
-
-		poll_wait(file, &q->done_wq, wait);
 	}
 
 	/*

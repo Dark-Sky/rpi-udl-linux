@@ -1120,7 +1120,6 @@ void cx231xx_v4l2_create_entities(struct cx231xx *dev)
 		ent->name = iname[INPUT(i)->type];
 		ent->flags = MEDIA_ENT_FL_CONNECTOR;
 		dev->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
-		dev->input_pad[i].sig_type = PAD_SIGNAL_ANALOG;
 
 		switch (INPUT(i)->type) {
 		case CX231XX_VMUX_COMPOSITE1:
