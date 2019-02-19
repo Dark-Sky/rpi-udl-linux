@@ -409,6 +409,15 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
 	 */
 	if (WARN_ON(!q->ops->buf_request_complete))
 		return -EINVAL;
+	/*
+	 * Make sure this op is implemented by the driver for the output queue.
+	 * It's easy to forget this callback, but is it important to correctly
+	 * validate the 'field' value at QBUF time.
+	 */
+	if (WARN_ON((q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT ||
+		     q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) &&
+		    !q->ops->buf_out_validate))
+		return -EINVAL;
 
 	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
 		dprintk(1, "%s: buffer is not in dequeued state\n", opname);
@@ -567,7 +576,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
 	unsigned int plane;
 
-	if (!vb->vb2_queue->is_output || !vb->vb2_queue->copy_timestamp)
+	if (!vb->vb2_queue->copy_timestamp)
 		vb->timestamp = 0;
 
 	for (plane = 0; plane < vb->num_planes; ++plane) {
@@ -594,14 +603,9 @@ int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
 {
 	unsigned int i;
 
-	for (i = start_idx; i < q->num_buffers; i++) {
-		struct vb2_buffer *vb = q->bufs[i];
-
-		if ((vb->state == VB2_BUF_STATE_DEQUEUED ||
-		     vb->state == VB2_BUF_STATE_DONE) &&
-		    vb->timestamp == timestamp)
+	for (i = start_idx; i < q->num_buffers; i++)
+		if (q->bufs[i]->timestamp == timestamp)
 			return i;
-	}
 	return -1;
 }
 EXPORT_SYMBOL_GPL(vb2_find_timestamp);

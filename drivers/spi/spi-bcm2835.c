@@ -872,17 +872,61 @@ static void bcm2835_spi_handle_err(struct spi_master *master,
 	bcm2835_spi_reset_hw(master);
 }
 
-static int chip_match_name(struct gpio_chip *chip, void *data)
+static void bcm2835_spi_set_cs(struct spi_device *spi, bool gpio_level)
 {
-	return !strcmp(chip->label, data);
+	/*
+	 * we can assume that we are "native" as per spi_set_cs
+	 *   calling us ONLY when cs_gpio is not set
+	 * we can also assume that we are CS < 3 as per bcm2835_spi_setup
+	 *   we would not get called because of error handling there.
+	 * the level passed is the electrical level not enabled/disabled
+	 *   so it has to get translated back to enable/disable
+	 *   see spi_set_cs in spi.c for the implementation
+	 */
+
+	struct spi_master *master = spi->master;
+	struct bcm2835_spi *bs = spi_master_get_devdata(master);
+	u32 cs = bcm2835_rd(bs, BCM2835_SPI_CS);
+	bool enable;
+
+	/* calculate the enable flag from the passed gpio_level */
+	enable = (spi->mode & SPI_CS_HIGH) ? gpio_level : !gpio_level;
+
+	/* set flags for "reverse" polarity in the registers */
+	if (spi->mode & SPI_CS_HIGH) {
+		/* set the correct CS-bits */
+		cs |= BCM2835_SPI_CS_CSPOL;
+		cs |= BCM2835_SPI_CS_CSPOL0 << spi->chip_select;
+	} else {
+		/* clean the CS-bits */
+		cs &= ~BCM2835_SPI_CS_CSPOL;
+		cs &= ~(BCM2835_SPI_CS_CSPOL0 << spi->chip_select);
+	}
+
+	/* select the correct chip_select depending on disabled/enabled */
+	if (enable) {
+		/* set cs correctly */
+		if (spi->mode & SPI_NO_CS) {
+			/* use the "undefined" chip-select */
+			cs |= BCM2835_SPI_CS_CS_10 | BCM2835_SPI_CS_CS_01;
+		} else {
+			/* set the chip select */
+			cs &= ~(BCM2835_SPI_CS_CS_10 | BCM2835_SPI_CS_CS_01);
+			cs |= spi->chip_select;
+		}
+	} else {
+		/* disable CSPOL which puts HW-CS into deselected state */
+		cs &= ~BCM2835_SPI_CS_CSPOL;
+		/* use the "undefined" chip-select as precaution */
+		cs |= BCM2835_SPI_CS_CS_10 | BCM2835_SPI_CS_CS_01;
+	}
+
+	/* finally set the calculated flags in SPI_CS */
+	bcm2835_wr(bs, BCM2835_SPI_CS, cs);
 }
 
 static int bcm2835_spi_setup(struct spi_device *spi)
 {
-	int err;
-	struct gpio_chip *chip;
-	struct device_node *pins;
-	u32 pingroup_index;
 	/*
 	 * sanity checking the native-chipselects
 	 */
@@ -899,58 +943,6 @@ static int bcm2835_spi_setup(struct spi_device *spi)
 			"setup: only two native chip-selects are supported\n");
 		return -EINVAL;
 	}
-
-#if 0
-	/* now translate native cs to GPIO */
-	/* first look for chip select pins in the devices pin groups */
-	for (pingroup_index = 0;
-	     (pins = of_parse_phandle(spi->master->dev.of_node,
-				     "pinctrl-0",
-				      pingroup_index)) != 0;
-	     pingroup_index++) {
-		u32 pin;
-		u32 pin_index;
-		for (pin_index = 0;
-		     of_property_read_u32_index(pins,
-						"brcm,pins",
-						pin_index,
-						&pin) == 0;
-		     pin_index++) {
-			if (((spi->chip_select == 0) &&
-			     ((pin == 8) || (pin == 36) || (pin == 46))) ||
-			    ((spi->chip_select == 1) &&
-			     ((pin == 7) || (pin == 35)))) {
-				spi->cs_gpio = pin;
-				break;
-			}
-		}
-		of_node_put(pins);
-	}
-	/* if that fails, assume GPIOs 7-11 are used */
-	if (!gpio_is_valid(spi->cs_gpio) ) {
-		/* get the gpio chip for the base */
-		chip = gpiochip_find("pinctrl-bcm2835", chip_match_name);
-		if (!chip)
-			return 0;
-
-		/* and calculate the real CS */
-		spi->cs_gpio = chip->base + 8 - spi->chip_select;
-	}
-
-	/* and set up the "mode" and level */
-	dev_info(&spi->dev, "setting up native-CS%i as GPIO %i\n",
-		 spi->chip_select, spi->cs_gpio);
-
-	/* set up GPIO as output and pull to the correct level */
-	err = gpio_direction_output(spi->cs_gpio,
-				    (spi->mode & SPI_CS_HIGH) ? 0 : 1);
-	if (err) {
-		dev_err(&spi->dev,
-			"could not set CS%i gpio %i as output: %i",
-			spi->chip_select, spi->cs_gpio, err);
-		return err;
-	}
-#endif
 
 	return 0;
 }
@@ -974,6 +966,7 @@ static int bcm2835_spi_probe(struct platform_device *pdev)
 	master->bits_per_word_mask = SPI_BPW_MASK(8);
 	master->num_chipselect = 3;
 	master->setup = bcm2835_spi_setup;
+	master->set_cs = bcm2835_spi_set_cs;
 	master->transfer_one = bcm2835_spi_transfer_one;
 	master->handle_err = bcm2835_spi_handle_err;
 	master->prepare_message = bcm2835_spi_prepare_message;

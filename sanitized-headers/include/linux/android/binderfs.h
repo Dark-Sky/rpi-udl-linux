@@ -4,8 +4,8 @@
  *
  */
 
-#ifndef _LINUX_BINDER_CTL_H
-#define _LINUX_BINDER_CTL_H
+#ifndef _LINUX_BINDERFS_H
+#define _LINUX_BINDERFS_H
 
 #include <linux/android/binder.h>
 #include <linux/types.h>
@@ -22,8 +22,8 @@
  */
 struct binderfs_device {
 	char name[BINDERFS_MAX_NAME + 1];
-	__u8 major;
-	__u8 minor;
+	__u32 major;
+	__u32 minor;
 };
 
 /**
@@ -31,5 +31,5 @@ struct binderfs_device {
  */
 #define BINDER_CTL_ADD _IOWR('b', 1, struct binderfs_device)
 
-#endif /* _LINUX_BINDER_CTL_H */
+#endif /* _LINUX_BINDERFS_H */
 

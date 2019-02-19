@@ -427,13 +427,13 @@ create_pagelist(char __user *buf, size_t count, unsigned short type)
 	 * list
 	 */
 	if (pagelist_size > VCHIQ_DMA_POOL_SIZE) {
-		pagelist = dma_zalloc_coherent(g_dev,
+		pagelist = dma_alloc_coherent(g_dev,
 					       pagelist_size,
 					       &dma_addr,
 					       GFP_KERNEL);
 		is_from_pool = false;
 	} else {
-		pagelist = dma_pool_zalloc(g_dma_pool, GFP_KERNEL, &dma_addr);
+		pagelist = dma_pool_alloc(g_dma_pool, GFP_KERNEL, &dma_addr);
 		is_from_pool = true;
 	}
 

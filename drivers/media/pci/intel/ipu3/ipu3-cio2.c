@@ -218,8 +218,8 @@ static int cio2_fbpt_init(struct cio2_device *cio2, struct cio2_queue *q)
 {
 	struct device *dev = &cio2->pci_dev->dev;
 
-	q->fbpt = dma_zalloc_coherent(dev, CIO2_FBPT_SIZE, &q->fbpt_bus_addr,
-				      GFP_KERNEL);
+	q->fbpt = dma_alloc_coherent(dev, CIO2_FBPT_SIZE, &q->fbpt_bus_addr,
+				     GFP_KERNEL);
 	if (!q->fbpt)
 		return -ENOMEM;
 
@@ -1810,7 +1810,8 @@ static int cio2_pci_probe(struct pci_dev *pci_dev,
 
 	/* Register notifier for subdevices we care */
 	r = cio2_notifier_init(cio2);
-	if (r)
+	/* Proceed without sensors connected to allow the device to suspend. */
+	if (r && r != -ENODEV)
 		goto fail_cio2_queue_exit;
 
 	r = devm_request_irq(&pci_dev->dev, pci_dev->irq, cio2_irq,
@@ -2047,7 +2048,7 @@ module_pci_driver(cio2_pci_driver);
 
 MODULE_AUTHOR("Tuukka Toivonen <tuukka.toivonen@intel.com>");
 MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
-MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
+MODULE_AUTHOR("Jian Xu Zheng");
 MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
 MODULE_AUTHOR("Yong Zhi <yong.zhi@intel.com>");
 MODULE_LICENSE("GPL v2");
