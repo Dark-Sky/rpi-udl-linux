@@ -39,7 +39,7 @@ sudo pacman -S pigz
 
 # CLONE REPO
 
-git clone https://bitbucket.org/dark-sky/rpi-udl-linux     # Clone repo
+git clone https://github.com/Dark-Sky/rpi-udl-linux     # Clone repo
 
 # SET UP ENVIORMENTAL VARIABLES (HAS TO BE DONE EACH TIME YOU COMPILE)
 
