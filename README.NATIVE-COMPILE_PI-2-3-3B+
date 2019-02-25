@@ -19,7 +19,7 @@ sudo pacman -S pigz
 
 # CLONE REPO & COMPILE KERNEL
 
-git clone https://gitlab.com/Dark-Sky/rpi-udl-linux.git       # Clone repo
+git clone https://github.com/Dark-Sky/rpi-udl-linux       # Clone repo
 cd rpi-udl-linux
 
 # There is a needed header file stddef.h that has to be installed first in
