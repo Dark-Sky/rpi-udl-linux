@@ -6,6 +6,15 @@ THIS KERNEL HAS NEW DVB HEADERS. FOLLOW PROCEDURE BELOW TO SANITIZE THE
 UAPI HEADERS FOR USER SPACE APPS AND INSTALL THEM AFTER COMPILING/INSTALLING
 THE NEW KERNEL
 
+This guide is intended for an arch linux based system. It shold work for others
+But the modules install patch should be changed as arch linux real path is under
+/usr. Arch has symbolic links under / but the point to being under /usr.
+
+From:
+INSTALL_MOD_PATH=/path-to-the-sdcard-ext4-partition/usr modules_install
+To:
+INSTALL_MOD_PATH=/path-to-the-sdcard-ext4-partition modules_install
+
 ********************************************************************************
 
 
